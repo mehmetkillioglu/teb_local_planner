@@ -52,7 +52,7 @@
 
 #include "teb_local_planner/distance_calculations.h"
 
-
+// TODO: Optimize this
 namespace teb_local_planner
 {
 
@@ -63,14 +63,14 @@ namespace teb_local_planner
 class Obstacle
 {
 public:
-  
+
   /**
     * @brief Default constructor of the abstract obstacle class
     */
   Obstacle() : dynamic_(false), centroid_velocity_(Eigen::Vector2d::Zero())
   {
   }
-  
+
   /**
    * @brief Virtual destructor.
    */
@@ -80,7 +80,7 @@ public:
 
 
   /** @name Centroid coordinates (abstract, obstacle type depending) */
-  //@{ 
+  //@{
 
   /**
     * @brief Get centroid coordinates of the obstacle
@@ -98,7 +98,7 @@ public:
 
 
   /** @name Collision checking and distance calculations (abstract, obstacle type depending) */
-  //@{ 
+  //@{
 
   /**
     * @brief Check if a given point collides with the obstacle
@@ -131,7 +131,7 @@ public:
    * @return The nearest possible distance to the obstacle
    */
   virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const = 0;
-  
+
   /**
    * @brief Get the minimum euclidean distance to the obstacle (polygon as reference)
    * @param polygon Vertices (2D points) describing a closed polygon
@@ -151,7 +151,7 @@ public:
 
 
   /** @name Velocity related methods for non-static, moving obstacles */
-  //@{ 
+  //@{
 
   /**
     * @brief Get the estimated minimum spatiotemporal distance to the moving obstacle using a constant velocity model (point as reference)
@@ -191,7 +191,7 @@ public:
   /**
     * @brief Check if the obstacle is a moving with a (non-zero) velocity
     * @return \c true if the obstacle is not marked as static, \c false otherwise
-    */	
+    */
   bool isDynamic() const {return dynamic_;}
 
   /**
@@ -199,7 +199,7 @@ public:
     * @remarks Setting the velocity using this function marks the obstacle as dynamic (@see isDynamic)
     * @param vel 2D vector containing the velocities of the centroid in x and y directions
     */
-  void setCentroidVelocity(const Eigen::Ref<const Eigen::Vector2d>& vel) {centroid_velocity_ = vel; dynamic_=true;} 
+  void setCentroidVelocity(const Eigen::Ref<const Eigen::Vector2d>& vel) {centroid_velocity_ = vel; dynamic_=true;}
 
   /**
     * @brief Set the 2d velocity (vx, vy) of the obstacle w.r.t to the centroid
@@ -245,13 +245,13 @@ public:
 
 
   /** @name Helper Functions */
-  //@{ 
-  
+  //@{
+
   /**
    * @brief Convert the obstacle to a polygon message
-   * 
+   *
    * Convert the obstacle to a corresponding polygon msg.
-   * Point obstacles have one vertex, lines have two vertices 
+   * Point obstacles have one vertex, lines have two vertices
    * and polygons might are implictly closed such that the start vertex must not be repeated.
    * @param[out] polygon the polygon message
    */
@@ -274,13 +274,13 @@ public:
   }
 
   //@}
-	
+
 protected:
-	   
+
   bool dynamic_; //!< Store flag if obstacle is dynamic (resp. a moving obstacle)
   Eigen::Vector2d centroid_velocity_; //!< Store the corresponding velocity (vx, vy) of the centroid (zero, if _dynamic is \c true)
-  
-public:	
+
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
@@ -301,115 +301,115 @@ typedef std::vector<ObstaclePtr> ObstContainer;
 class PointObstacle : public Obstacle
 {
 public:
-  
+
   /**
     * @brief Default constructor of the point obstacle class
     */
   PointObstacle() : Obstacle(), pos_(Eigen::Vector2d::Zero())
   {}
-  
+
   /**
     * @brief Construct PointObstacle using a 2d position vector
     * @param position 2d position that defines the current obstacle position
     */
   PointObstacle(const Eigen::Ref< const Eigen::Vector2d>& position) : Obstacle(), pos_(position)
   {}
-  
+
   /**
     * @brief Construct PointObstacle using x- and y-coordinates
     * @param x x-coordinate
     * @param y y-coordinate
-    */      
+    */
   PointObstacle(double x, double y) : Obstacle(), pos_(Eigen::Vector2d(x,y))
   {}
 
 
   // implements checkCollision() of the base class
-  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const
+  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const override
   {
       return getMinimumDistance(point) < min_dist;
   }
-  
-  
+
+
   // implements checkLineIntersection() of the base class
-  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const
-  {   
+  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const override
+  {
       // Distance Line - Circle
       // refer to http://www.spieleprogrammierer.de/wiki/2D-Kollisionserkennung#Kollision_Kreis-Strecke
       Eigen::Vector2d a = line_end-line_start; // not normalized!  a=y-x
       Eigen::Vector2d b = pos_-line_start; // b=m-x
-      
+
       // Now find nearest point to circle v=x+a*t with t=a*b/(a*a) and bound to 0<=t<=1
       double t = a.dot(b)/a.dot(a);
       if (t<0) t=0; // bound t (since a is not normalized, t can be scaled between 0 and 1 to parametrize the line
       else if (t>1) t=1;
       Eigen::Vector2d nearest_point = line_start + a*t;
-      
+
       // check collision
       return checkCollision(nearest_point, min_dist);
   }
 
-  
+
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& position) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& position) const override
   {
     return (position-pos_).norm();
   }
-  
+
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const override
   {
     return distance_point_to_segment_2d(pos_, line_start, line_end);
   }
-  
+
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Point2dContainer& polygon) const
+  virtual double getMinimumDistance(const Point2dContainer& polygon) const override
   {
     return distance_point_to_polygon_2d(pos_, polygon);
   }
-  
+
   // implements getMinimumDistanceVec() of the base class
-  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const
+  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const override
   {
     return pos_;
   }
-  
+
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const override
   {
     return (pos_ + t*centroid_velocity_ - position).norm();
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const override
   {
     return distance_point_to_segment_2d(pos_ + t*centroid_velocity_, line_start, line_end);
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const override
   {
     return distance_point_to_polygon_2d(pos_ + t*centroid_velocity_, polygon);
   }
 
   // implements predictCentroidConstantVelocity() of the base class
-  virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const
+  virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const override
   {
     position = pos_ + t*centroid_velocity_;
   }
 
   // implements getCentroid() of the base class
-  virtual const Eigen::Vector2d& getCentroid() const
+  virtual const Eigen::Vector2d& getCentroid() const override
   {
     return pos_;
   }
-  
+
   // implements getCentroidCplx() of the base class
-  virtual std::complex<double> getCentroidCplx() const
+  virtual std::complex<double> getCentroidCplx() const override
   {
     return std::complex<double>(pos_[0],pos_[1]);
   }
-  
+
   // Accessor methods
   const Eigen::Vector2d& position() const {return pos_;} //!< Return the current position of the obstacle (read-only)
   Eigen::Vector2d& position() {return pos_;} //!< Return the current position of the obstacle
@@ -417,23 +417,23 @@ public:
   const double& x() const {return pos_.coeffRef(0);} //!< Return the current y-coordinate of the obstacle (read-only)
   double& y() {return pos_.coeffRef(1);} //!< Return the current x-coordinate of the obstacle
   const double& y() const {return pos_.coeffRef(1);} //!< Return the current y-coordinate of the obstacle (read-only)
-      
+
   // implements toPolygonMsg() of the base class
-  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon)
+  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon) override
   {
     polygon.points.resize(1);
     polygon.points.front().x = pos_.x();
     polygon.points.front().y = pos_.y();
     polygon.points.front().z = 0;
   }
-      
+
 protected:
-  
+
   Eigen::Vector2d pos_; //!< Store the position of the PointObstacle
-  
-  	
-public:	
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW  
+
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /**
@@ -469,14 +469,14 @@ public:
 
 
   // implements checkCollision() of the base class
-  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const
+  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const override
   {
       return getMinimumDistance(point) < min_dist;
   }
 
 
   // implements checkLineIntersection() of the base class
-  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const
+  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const override
   {
       // Distance Line - Circle
       // refer to http://www.spieleprogrammierer.de/wiki/2D-Kollisionserkennung#Kollision_Kreis-Strecke
@@ -495,61 +495,61 @@ public:
 
 
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& position) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& position) const override
   {
     return (position-pos_).norm() - radius_;
   }
 
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const override
   {
     return distance_point_to_segment_2d(pos_, line_start, line_end) - radius_;
   }
 
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Point2dContainer& polygon) const
+  virtual double getMinimumDistance(const Point2dContainer& polygon) const override
   {
     return distance_point_to_polygon_2d(pos_, polygon) - radius_;
   }
 
   // implements getMinimumDistanceVec() of the base class
-  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const
+  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const override
   {
     return pos_ + radius_*(position-pos_).normalized();
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const override
   {
     return (pos_ + t*centroid_velocity_ - position).norm() - radius_;
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const override
   {
     return distance_point_to_segment_2d(pos_ + t*centroid_velocity_, line_start, line_end) - radius_;
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const override
   {
     return distance_point_to_polygon_2d(pos_ + t*centroid_velocity_, polygon) - radius_;
   }
 
   // implements predictCentroidConstantVelocity() of the base class
-  virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const
+  virtual void predictCentroidConstantVelocity(double t, Eigen::Ref<Eigen::Vector2d> position) const override
   {
     position = pos_ + t*centroid_velocity_;
   }
 
   // implements getCentroid() of the base class
-  virtual const Eigen::Vector2d& getCentroid() const
+  virtual const Eigen::Vector2d& getCentroid() const override
   {
     return pos_;
   }
 
   // implements getCentroidCplx() of the base class
-  virtual std::complex<double> getCentroidCplx() const
+  virtual std::complex<double> getCentroidCplx() const override
   {
     return std::complex<double>(pos_[0],pos_[1]);
   }
@@ -565,7 +565,7 @@ public:
   const double& radius() const {return radius_;} //!< Return the current radius of the obstacle
 
   // implements toPolygonMsg() of the base class
-  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon)
+  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon) override
   {
     // TODO(roesmann): the polygon message type cannot describe a "perfect" circle
     //                 We could switch to ObstacleMsg if required somewhere...
@@ -589,13 +589,13 @@ public:
 * @class LineObstacle
 * @brief Implements a 2D line obstacle
 */
-  
+
 class LineObstacle : public Obstacle
 {
 public:
   //! Abbrev. for a container storing vertices (2d points defining the edge points of the polygon)
   typedef std::vector<Eigen::Vector2d,Eigen::aligned_allocator<Eigen::Vector2d> > VertexContainer;
-  
+
   /**
     * @brief Default constructor of the point obstacle class
     */
@@ -605,18 +605,18 @@ public:
     end_.setZero();
     centroid_.setZero();
   }
-  
+
   /**
    * @brief Construct LineObstacle using 2d position vectors as start and end of the line
    * @param line_start 2d position that defines the start of the line obstacle
    * @param line_end 2d position that defines the end of the line obstacle
    */
-  LineObstacle(const Eigen::Ref< const Eigen::Vector2d>& line_start, const Eigen::Ref< const Eigen::Vector2d>& line_end) 
+  LineObstacle(const Eigen::Ref< const Eigen::Vector2d>& line_start, const Eigen::Ref< const Eigen::Vector2d>& line_end)
                 : Obstacle(), start_(line_start), end_(line_end)
   {
     calcCentroid();
   }
-  
+
   /**
    * @brief Construct LineObstacle using start and end coordinates
    * @param x1 x-coordinate of the start of the line
@@ -624,7 +624,7 @@ public:
    * @param x2 x-coordinate of the end of the line
    * @param y2 y-coordinate of the end of the line
    */
-  LineObstacle(double x1, double y1, double x2, double y2) : Obstacle()     
+  LineObstacle(double x1, double y1, double x2, double y2) : Obstacle()
   {
     start_.x() = x1;
     start_.y() = y1;
@@ -634,105 +634,105 @@ public:
   }
 
   // implements checkCollision() of the base class
-  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const    
+  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const override
   {
     return getMinimumDistance(point) <= min_dist;
   }
-  
+
   // implements checkLineIntersection() of the base class
-  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const 
+  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const override
   {
     return check_line_segments_intersection_2d(line_start, line_end, start_, end_);
   }
 
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& position) const 
+  virtual double getMinimumDistance(const Eigen::Vector2d& position) const override
   {
     return distance_point_to_segment_2d(position, start_, end_);
   }
-  
+
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const override
   {
     return distance_segment_to_segment_2d(start_, end_, line_start, line_end);
   }
-  
+
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Point2dContainer& polygon) const
+  virtual double getMinimumDistance(const Point2dContainer& polygon) const override
   {
     return distance_segment_to_polygon_2d(start_, end_, polygon);
   }
 
   // implements getMinimumDistanceVec() of the base class
-  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const
+  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const override
   {
     return closest_point_on_line_segment_2d(position, start_, end_);
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const override
   {
     Eigen::Vector2d offset = t*centroid_velocity_;
     return distance_point_to_segment_2d(position, start_ + offset, end_ + offset);
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const override
   {
     Eigen::Vector2d offset = t*centroid_velocity_;
     return distance_segment_to_segment_2d(start_ + offset, end_ + offset, line_start, line_end);
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const override
   {
     Eigen::Vector2d offset = t*centroid_velocity_;
     return distance_segment_to_polygon_2d(start_ + offset, end_ + offset, polygon);
   }
 
   // implements getCentroid() of the base class
-  virtual const Eigen::Vector2d& getCentroid() const    
+  virtual const Eigen::Vector2d& getCentroid() const override
   {
     return centroid_;
   }
-  
+
   // implements getCentroidCplx() of the base class
-  virtual std::complex<double> getCentroidCplx() const  
+  virtual std::complex<double> getCentroidCplx() const override
   {
     return std::complex<double>(centroid_.x(), centroid_.y());
   }
-  
+
   // Access or modify line
   const Eigen::Vector2d& start() const {return start_;}
   void setStart(const Eigen::Ref<const Eigen::Vector2d>& start) {start_ = start; calcCentroid();}
   const Eigen::Vector2d& end() const {return end_;}
   void setEnd(const Eigen::Ref<const Eigen::Vector2d>& end) {end_ = end; calcCentroid();}
-  
+
   // implements toPolygonMsg() of the base class
-  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon)
+  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon) override
   {
     polygon.points.resize(2);
     polygon.points.front().x = start_.x();
     polygon.points.front().y = start_.y();
-    
+
     polygon.points.back().x = end_.x();
     polygon.points.back().y = end_.y();
     polygon.points.back().z = polygon.points.front().z = 0;
   }
-  
+
 protected:
   void calcCentroid()	{	centroid_ = 0.5*(start_ + end_); }
-  
+
 private:
 	Eigen::Vector2d start_;
 	Eigen::Vector2d end_;
-	
+
   Eigen::Vector2d centroid_;
 
-public:	
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW  
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-  
+
 
 /**
  * @class PolygonObstacle
@@ -744,7 +744,7 @@ public:
 class PolygonObstacle : public Obstacle
 {
 public:
-    
+
   /**
     * @brief Default constructor of the polygon obstacle class
     */
@@ -752,7 +752,7 @@ public:
   {
     centroid_.setConstant(NAN);
   }
-  
+
   /**
    * @brief Construct polygon obstacle with a list of vertices
    */
@@ -760,32 +760,32 @@ public:
   {
     finalizePolygon();
   }
-  
-  
+
+
   /* FIXME Not working at the moment due to the aligned allocator version of std::vector
     * And it is C++11 code that is disabled atm to ensure compliance with ROS indigo/jade
   template <typename... Vector2dType>
   PolygonObstacle(const Vector2dType&... vertices) : _vertices({vertices...})
-  { 
+  {
     calcCentroid();
     _finalized = true;
   }
   */
 
-  
+
   // implements checkCollision() of the base class
-  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const
+  virtual bool checkCollision(const Eigen::Vector2d& point, double min_dist) const override
   {
       // line case
       if (noVertices()==2)
         return getMinimumDistance(point) <= min_dist;
-    
+
       // check if point is in the interior of the polygon
       // point in polygon test - raycasting (http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html)
-      // using the following algorithm we may obtain false negatives on edge-cases, but that's ok for our purposes	
+      // using the following algorithm we may obtain false negatives on edge-cases, but that's ok for our purposes
       int i, j;
       bool c = false;
-      for (i = 0, j = noVertices()-1; i < noVertices(); j = i++) 
+      for (i = 0, j = noVertices()-1; i < noVertices(); j = i++)
       {
         if ( ((vertices_.at(i).y()>point.y()) != (vertices_.at(j).y()>point.y())) &&
               (point.x() < (vertices_.at(j).x()-vertices_.at(i).x()) * (point.y()-vertices_.at(i).y()) / (vertices_.at(j).y()-vertices_.at(i).y()) + vertices_.at(i).x()) )
@@ -797,7 +797,7 @@ public:
       // Let us check the minium distance as well
       return min_dist == 0 ? false : getMinimumDistance(point) < min_dist;
   }
-  
+
 
   /**
     * @brief Check if a given line segment between two points intersects with the obstacle (and additionally keeps a safty distance \c min_dist)
@@ -807,32 +807,32 @@ public:
     * @remarks we ignore \c min_dist here
     * @return \c true if given line intersects the region of the obstacle or if the minimum distance is lower than min_dist
     */
-  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const;
+  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const override;
 
 
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& position) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& position) const override
   {
     return distance_point_to_polygon_2d(position, vertices_);
   }
-  
+
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const
+  virtual double getMinimumDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end) const override
   {
     return distance_segment_to_polygon_2d(line_start, line_end, vertices_);
   }
 
   // implements getMinimumDistance() of the base class
-  virtual double getMinimumDistance(const Point2dContainer& polygon) const
+  virtual double getMinimumDistance(const Point2dContainer& polygon) const override
   {
     return distance_polygon_to_polygon_2d(polygon, vertices_);
   }
-  
+
   // implements getMinimumDistanceVec() of the base class
-  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const;
-  
+  virtual Eigen::Vector2d getClosestPoint(const Eigen::Vector2d& position) const override;
+
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& position, double t) const override
   {
     Point2dContainer pred_vertices;
     predictVertices(t, pred_vertices);
@@ -840,7 +840,7 @@ public:
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double t) const override
   {
     Point2dContainer pred_vertices;
     predictVertices(t, pred_vertices);
@@ -848,14 +848,14 @@ public:
   }
 
   // implements getMinimumSpatioTemporalDistance() of the base class
-  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const
+  virtual double getMinimumSpatioTemporalDistance(const Point2dContainer& polygon, double t) const override
   {
     Point2dContainer pred_vertices;
     predictVertices(t, pred_vertices);
     return distance_polygon_to_polygon_2d(polygon, pred_vertices);
   }
 
-  virtual void predictVertices(double t, Point2dContainer& pred_vertices) const
+  void predictVertices(double t, Point2dContainer& pred_vertices) const
   {
     // Predict obstacle (polygon) at time t
     pred_vertices.resize(vertices_.size());
@@ -867,30 +867,30 @@ public:
   }
 
   // implements getCentroid() of the base class
-  virtual const Eigen::Vector2d& getCentroid() const
+  virtual const Eigen::Vector2d& getCentroid() const override
   {
     assert(finalized_ && "Finalize the polygon after all vertices are added.");
     return centroid_;
   }
-  
+
   // implements getCentroidCplx() of the base class
-  virtual std::complex<double> getCentroidCplx() const
+  virtual std::complex<double> getCentroidCplx() const override
   {
     assert(finalized_ && "Finalize the polygon after all vertices are added.");
     return std::complex<double>(centroid_.coeffRef(0), centroid_.coeffRef(1));
   }
-  
-  // implements toPolygonMsg() of the base class
-  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon);
 
-  
+  // implements toPolygonMsg() of the base class
+  virtual void toPolygonMsg(geometry_msgs::msg::Polygon& polygon) override;
+
+
   /** @name Define the polygon */
   ///@{
-  
+
   // Access or modify polygon
   const Point2dContainer& vertices() const {return vertices_;} //!< Access vertices container (read-only)
   Point2dContainer& vertices() {return vertices_;} //!< Access vertices container
-  
+
   /**
     * @brief Add a vertex to the polygon (edge-point)
     * @remarks You do not need to close the polygon (do not repeat the first vertex)
@@ -902,20 +902,20 @@ public:
     vertices_.push_back(vertex);
     finalized_ = false;
   }
-  
+
   /**
     * @brief Add a vertex to the polygon (edge-point)
     * @remarks You do not need to close the polygon (do not repeat the first vertex)
     * @warning Do not forget to call finalizePolygon() after adding all vertices
     * @param x x-coordinate of the new vertex
     * @param y y-coordinate of the new vertex
-    */  
+    */
   void pushBackVertex(double x, double y)
   {
     vertices_.push_back(Eigen::Vector2d(x,y));
     finalized_ = false;
   }
-  
+
   /**
     * @brief Call finalizePolygon after the polygon is created with the help of pushBackVertex() methods
     */
@@ -925,35 +925,35 @@ public:
     calcCentroid();
     finalized_ = true;
   }
-  
+
   /**
     * @brief Clear all vertices (Afterwards the polygon is not valid anymore)
     */
   void clearVertices() {vertices_.clear(); finalized_ = false;}
-  
+
   /**
     * @brief Get the number of vertices defining the polygon (the first vertex is counted once)
     */
   int noVertices() const {return (int)vertices_.size();}
-  
-  
+
+
   ///@}
-      
+
 protected:
-  
+
   void fixPolygonClosure(); //!< Check if the current polygon contains the first vertex twice (as start and end) and in that case erase the last redundant one.
 
   void calcCentroid(); //!< Compute the centroid of the polygon (called inside finalizePolygon())
 
-  
+
   Point2dContainer vertices_; //!< Store vertices defining the polygon (@see pushBackVertex)
   Eigen::Vector2d centroid_; //!< Store the centroid coordinates of the polygon (@see calcCentroid)
-  
+
   bool finalized_; //!< Flat that keeps track if the polygon was finalized after adding all vertices
-  
-  	
-public:	
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW  
+
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

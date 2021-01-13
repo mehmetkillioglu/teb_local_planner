@@ -38,43 +38,41 @@
 
 #ifndef HOMOTOPY_CLASS_PLANNER_H_
 #define HOMOTOPY_CLASS_PLANNER_H_
-
+//TODO: more function should be private.
+//TODO: group virtual functions
+//TODO: consider finalizing
 #include <math.h>
 
 #include <algorithm>
 #include <functional>
+#include <geometry_msgs/msg/point.hpp>
 #include <iterator>
 #include <memory>
-#include <vector>
-
-#include <visualization_msgs/msg/marker.hpp>
-#include <geometry_msgs/msg/point.hpp>
-#include <std_msgs/msg/color_rgba.hpp>
-
 #include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/color_rgba.hpp>
+#include <vector>
+#include <visualization_msgs/msg/marker.hpp>
 
-#include "teb_local_planner/planner_interface.h"
-#include "teb_local_planner/teb_config.h"
-#include "teb_local_planner/obstacles.h"
-#include "teb_local_planner/optimal_planner.h"
-#include "teb_local_planner/visualization.h"
-#include "teb_local_planner/robot_footprint_model.h"
 #include "teb_local_planner/equivalence_relations.h"
 #include "teb_local_planner/graph_search.h"
-
+#include "teb_local_planner/obstacles.h"
+#include "teb_local_planner/optimal_planner.h"
+#include "teb_local_planner/planner_interface.h"
+#include "teb_local_planner/robot_footprint_model.h"
+#include "teb_local_planner/teb_config.h"
+#include "teb_local_planner/visualization.h"
 
 namespace teb_local_planner
 {
-
 //!< Inline function used for calculateHSignature() in combination with VertexPose pointers
-inline std::complex<long double> getCplxFromVertexPosePtr(const VertexPose* pose)
+inline std::complex<long double> getCplxFromVertexPosePtr(const VertexPose * pose)
 {
   return std::complex<long double>(pose->x(), pose->y());
 };
 
-
 //!< Inline function used for calculateHSignature() in combination with geometry_msgs::msg::PoseStamped
-inline std::complex<long double> getCplxFromMsgPoseStamped(const geometry_msgs::msg::PoseStamped& pose)
+inline std::complex<long double> getCplxFromMsgPoseStamped(
+  const geometry_msgs::msg::PoseStamped & pose)
 {
   return std::complex<long double>(pose.pose.position.x, pose.pose.position.y);
 };
@@ -106,8 +104,7 @@ inline std::complex<long double> getCplxFromMsgPoseStamped(const geometry_msgs::
 class HomotopyClassPlanner : public PlannerInterface
 {
 public:
-
-  using EquivalenceClassContainer = std::vector< std::pair<EquivalenceClassPtr, bool> >;
+  using EquivalenceClassContainer = std::vector<std::pair<EquivalenceClassPtr, bool> >;
 
   /**
    * @brief Default constructor
@@ -123,13 +120,17 @@ public:
    * @param visualization Shared pointer to the TebVisualization class (optional)
    * @param via_points Container storing via-points (optional)
    */
-  HomotopyClassPlanner(nav2_util::LifecycleNode::SharedPtr node, const TebConfig& cfg, ObstContainer* obstacles = NULL, RobotFootprintModelPtr robot_model = std::make_shared<PointRobotFootprint>(),
-                       TebVisualizationPtr visualization = TebVisualizationPtr(), const ViaPointContainer* via_points = NULL);
+  HomotopyClassPlanner(
+    nav2_util::LifecycleNode::SharedPtr node, const TebConfig & cfg,
+    ObstContainer * obstacles = NULL,
+    RobotFootprintModelPtr robot_model = std::make_shared<PointRobotFootprint>(),
+    TebVisualizationPtr visualization = TebVisualizationPtr(),
+    const ViaPointContainer * via_points = NULL);
 
   /**
    * @brief Destruct the HomotopyClassPlanner.
    */
-  virtual ~HomotopyClassPlanner();
+  virtual ~HomotopyClassPlanner() override;
 
   /**
    * @brief Initialize the HomotopyClassPlanner
@@ -140,10 +141,12 @@ public:
    * @param visualization Shared pointer to the TebVisualization class (optional)
    * @param via_points Container storing via-points (optional)
    */
-  void initialize(nav2_util::LifecycleNode::SharedPtr node, const TebConfig& cfg, ObstContainer* obstacles = NULL, RobotFootprintModelPtr robot_model = std::make_shared<PointRobotFootprint>(),
-                  TebVisualizationPtr visualization = TebVisualizationPtr(), const ViaPointContainer* via_points = NULL);
-
-
+  void initialize(
+    nav2_util::LifecycleNode::SharedPtr node, const TebConfig & cfg,
+    ObstContainer * obstacles = NULL,
+    RobotFootprintModelPtr robot_model = std::make_shared<PointRobotFootprint>(),
+    TebVisualizationPtr visualization = TebVisualizationPtr(),
+    const ViaPointContainer * via_points = NULL);
 
   /** @name Plan a trajectory */
   //@{
@@ -160,7 +163,9 @@ public:
    *		      otherwise the final velocity will be zero (default: false)
    * @return \c true if planning was successful, \c false otherwise
    */
-  virtual bool plan(const std::vector<geometry_msgs::msg::PoseStamped>& initial_plan, const geometry_msgs::msg::Twist* start_vel = NULL, bool free_goal_vel=false);
+  virtual bool plan(
+    const std::vector<geometry_msgs::msg::PoseStamped> & initial_plan,
+    const geometry_msgs::msg::Twist * start_vel = NULL, bool free_goal_vel = false) override;
 
   /**
    * @brief Plan a trajectory between a given start and goal pose (tf::Pose version).
@@ -174,7 +179,7 @@ public:
    * @return \c true if planning was successful, \c false otherwise
    */
   // tf2 doesn't have tf::Pose
-//  virtual bool plan(const tf::Pose& start, const tf::Pose& goal, const geometry_msgs::msg::Twist* start_vel = NULL, bool free_goal_vel=false);
+  //  virtual bool plan(const tf::Pose& start, const tf::Pose& goal, const geometry_msgs::msg::Twist* start_vel = NULL, bool free_goal_vel=false);
 
   /**
    * @brief Plan a trajectory between a given start and goal pose.
@@ -187,7 +192,9 @@ public:
    *		      otherwise the final velocity will be zero (default: false)
    * @return \c true if planning was successful, \c false otherwise
    */
-  virtual bool plan(const PoseSE2& start, const PoseSE2& goal, const geometry_msgs::msg::Twist* start_vel = NULL, bool free_goal_vel=false);
+  virtual bool plan(
+    const PoseSE2 & start, const PoseSE2 & goal, const geometry_msgs::msg::Twist * start_vel = NULL,
+    bool free_goal_vel = false) override;
 
   /**
    * @brief Get the velocity command from a previously optimized plan to control the robot at the current sampling interval.
@@ -198,7 +205,8 @@ public:
    * @param[in] look_ahead_poses index of the final pose used to compute the velocity command.
    * @return \c true if command is valid, \c false otherwise
    */
-  virtual bool getVelocityCommand(double& vx, double& vy, double& omega, int look_ahead_poses) const;
+  virtual bool getVelocityCommand(
+    double & vx, double & vy, double & omega, int look_ahead_poses) const override;
 
   /**
    * @brief Access current best trajectory candidate (that relates to the "best" homotopy class).
@@ -208,7 +216,11 @@ public:
    * Otherwise return the best one, but call selectBestTeb() before to perform the actual selection (part of the plan() methods).
    * @return Shared pointer to the best TebOptimalPlanner that contains the selected trajectory (TimedElasticBand).
    */
-  TebOptimalPlannerPtr bestTeb() const {return tebs_.empty() ? TebOptimalPlannerPtr() : tebs_.size()==1 ? tebs_.front() : best_teb_;}
+  //TODO: fix the following ugly code.
+  TebOptimalPlannerPtr bestTeb() const
+  {
+    return tebs_.empty() ? TebOptimalPlannerPtr() : tebs_.size() == 1 ? tebs_.front() : best_teb_;
+  }
 
   /**
    * @brief Check whether the planned trajectory is feasible or not.
@@ -223,8 +235,10 @@ public:
    * @return \c true, if the robot footprint along the first part of the trajectory intersects with
    *         any obstacle in the costmap, \c false otherwise.
    */
-  virtual bool isTrajectoryFeasible(dwb_critics::ObstacleFootprintCritic* costmap_model, const std::vector<geometry_msgs::msg::Point>& footprint_spec,
-                                    double inscribed_radius = 0.0, double circumscribed_radius=0.0, int look_ahead_idx=-1);
+  virtual bool isTrajectoryFeasible(
+    dwb_critics::ObstacleFootprintCritic * costmap_model,
+    const std::vector<geometry_msgs::msg::Point> & footprint_spec, double inscribed_radius = 0.0,
+    double circumscribed_radius = 0.0, int look_ahead_idx = -1) override;
 
   /**
    * @brief In case of empty best teb, scores again the available plans to find the best one.
@@ -239,7 +253,7 @@ public:
    * @param pointer to the teb Band to be removed
    * @return Iterator to the next valid teb if available, else to the end of the tebs container.
    */
-  TebOptPlannerContainer::iterator removeTeb(TebOptimalPlannerPtr& teb);
+  TebOptPlannerContainer::iterator removeTeb(TebOptimalPlannerPtr & teb);
 
   //@}
 
@@ -251,21 +265,20 @@ public:
    * @param visualization shared pointer to a TebVisualization instance
    * @see visualizeTeb
    */
-  void setVisualization(const TebVisualizationPtr & visualization) override;
+  virtual void setVisualization(const TebVisualizationPtr & visualization) override;
 
-   /**
+  /**
     * @brief Publish the local plan, pose sequence and additional information via ros topics (e.g. subscribe with rviz).
     *
     * Make sure to register a TebVisualization instance before using setVisualization() or an overlaoded constructor.
     * @see setVisualization
     */
-  virtual void visualize();
+  virtual void visualize() override;
 
   //@}
 
   /** @name Important steps that are called during planning */
   //@{
-
 
   /**
    * @brief Explore paths in new equivalence classes (e.g. homotopy classes) and initialize TEBs from them.
@@ -282,7 +295,9 @@ public:
    * @param dist_to_obst Allowed distance to obstacles: if not satisfying, the path will be rejected (note, this is not the distance used for optimization).
    * @param @param start_velocity start velocity (optional)
    */
-  void exploreEquivalenceClassesAndInitTebs(const PoseSE2& start, const PoseSE2& goal, double dist_to_obst, const geometry_msgs::msg::Twist* start_vel);
+  void exploreEquivalenceClassesAndInitTebs(
+    const PoseSE2 & start, const PoseSE2 & goal, double dist_to_obst,
+    const geometry_msgs::msg::Twist * start_vel);
 
   /**
    * @brief Add a new Teb to the internal trajectory container, if this teb constitutes a new equivalence class. Initialize it using a generic 2D reference path
@@ -298,8 +313,10 @@ public:
    * @tparam Fun unyary function that transforms the dereferenced iterator into an Eigen::Vector2d
    * @return Shared pointer to the newly created teb optimal planner
    */
-  template<typename BidirIter, typename Fun>
-  TebOptimalPlannerPtr addAndInitNewTeb(BidirIter path_start, BidirIter path_end, Fun fun_position, double start_orientation, double goal_orientation, const geometry_msgs::msg::Twist* start_velocity);
+  template <typename BidirIter, typename Fun>
+  TebOptimalPlannerPtr addAndInitNewTeb(
+    BidirIter path_start, BidirIter path_end, Fun fun_position, double start_orientation,
+    double goal_orientation, const geometry_msgs::msg::Twist * start_velocity);
 
   /**
    * @brief Add a new Teb to the internal trajectory container, if this teb constitutes a new equivalence class. Initialize it with a simple straight line between a given start and goal
@@ -308,7 +325,8 @@ public:
    * @param start_velocity start velocity (optional)
    * @return Shared pointer to the newly created teb optimal planner
    */
-  TebOptimalPlannerPtr addAndInitNewTeb(const PoseSE2& start, const PoseSE2& goal, const geometry_msgs::msg::Twist* start_velocity);
+  TebOptimalPlannerPtr addAndInitNewTeb(
+    const PoseSE2 & start, const PoseSE2 & goal, const geometry_msgs::msg::Twist * start_velocity);
 
   /**
    * @brief Add a new Teb to the internal trajectory container , if this teb constitutes a new equivalence class. Initialize it using a PoseStamped container
@@ -316,7 +334,9 @@ public:
    * @param start_velocity start velocity (optional)
    * @return Shared pointer to the newly created teb optimal planner
    */
-  TebOptimalPlannerPtr addAndInitNewTeb(const std::vector<geometry_msgs::msg::PoseStamped>& initial_plan, const geometry_msgs::msg::Twist* start_velocity);
+  TebOptimalPlannerPtr addAndInitNewTeb(
+    const std::vector<geometry_msgs::msg::PoseStamped> & initial_plan,
+    const geometry_msgs::msg::Twist * start_velocity);
 
   /**
    * @brief Update TEBs with new pose, goal and current velocity.
@@ -324,8 +344,8 @@ public:
    * @param goal New goal pose (optional)
    * @param start_velocity start velocity (optional)
    */
-  void updateAllTEBs(const PoseSE2* start, const PoseSE2* goal, const geometry_msgs::msg::Twist* start_velocity);
-
+  void updateAllTEBs(
+    const PoseSE2 * start, const PoseSE2 * goal, const geometry_msgs::msg::Twist * start_velocity);
 
   /**
    * @brief Optimize all available trajectories by invoking the optimizer on each one.
@@ -353,13 +373,18 @@ public:
 
   //@}
 
-   /**
+  /**
     * @brief Reset the planner.
     *
     * Clear all previously found H-signatures, paths, tebs and the hcgraph.
     */
-  virtual void clearPlanner() {clearGraph(); equivalence_classes_.clear(); tebs_.clear(); initial_plan_ = NULL;}
-
+  virtual void clearPlanner() override
+  {
+    clearGraph();
+    equivalence_classes_.clear();
+    tebs_.clear();
+    initial_plan_ = NULL;
+  }
 
   /**
    * @brief Prefer a desired initial turning direction (by penalizing the opposing one)
@@ -369,7 +394,7 @@ public:
    * Initial means that the penalty is applied only to the first few poses of the trajectory.
    * @param dir This parameter might be RotType::left (prefer left), RotType::right (prefer right) or RotType::none (prefer none)
    */
-  virtual void setPreferredTurningDir(RotType dir);
+  virtual void setPreferredTurningDir(RotType dir) override;
 
   /**
    * @brief Calculate the equivalence class of a path
@@ -384,15 +409,18 @@ public:
    * @tparam Fun function of the form std::complex< long double > (const T& point_type)
    * @return pointer to the equivalence class base type
    */
-  template<typename BidirIter, typename Fun>
-  EquivalenceClassPtr calculateEquivalenceClass(BidirIter path_start, BidirIter path_end, Fun fun_cplx_point, const ObstContainer* obstacles = NULL,
-                                                boost::optional<TimeDiffSequence::iterator> timediff_start = boost::none, boost::optional<TimeDiffSequence::iterator> timediff_end = boost::none);
+  template <typename BidirIter, typename Fun>
+  EquivalenceClassPtr calculateEquivalenceClass(
+    BidirIter path_start, BidirIter path_end, Fun fun_cplx_point,
+    const ObstContainer * obstacles = NULL,
+    boost::optional<TimeDiffSequence::iterator> timediff_start = boost::none,
+    boost::optional<TimeDiffSequence::iterator> timediff_end = boost::none);
 
   /**
    * @brief Read-only access to the internal trajectory container.
    * @return read-only reference to the teb container.
    */
-  const TebOptPlannerContainer& getTrajectoryContainer() const {return tebs_;}
+  const TebOptPlannerContainer & getTrajectoryContainer() const { return tebs_; }
 
   /**
    * Compute and return the cost of the current optimization graph (supports multiple trajectories)
@@ -402,7 +430,9 @@ public:
    * @param viapoint_cost_scale Specify extra scaling for via points.
    * @param alternative_time_cost Replace the cost for the time optimal objective by the actual (weighted) transition time
    */
-  virtual void computeCurrentCost(std::vector<double>& cost, double obst_cost_scale=1.0, double viapoint_cost_scale=1.0, bool alternative_time_cost=false);
+  virtual void computeCurrentCost(
+    std::vector<double> & cost, double obst_cost_scale = 1.0, double viapoint_cost_scale = 1.0,
+    bool alternative_time_cost = false) override;
 
   /**
    * @brief Check if two h-signatures are similar (w.r.t. a certain threshold)
@@ -410,13 +440,15 @@ public:
    * @param h2 second h-signature
    * @return \c true if both h-signatures are similar, false otherwise.
    */
-  inline static bool isHSignatureSimilar(const std::complex<long double>& h1, const std::complex<long double>& h2, double threshold)
+  //TODO: remove unnecessary inline keyword
+  inline static bool isHSignatureSimilar(
+    const std::complex<long double> & h1, const std::complex<long double> & h2, double threshold)
   {
-      double diff_real = std::abs(h2.real() - h1.real());
-      double diff_imag = std::abs(h2.imag() - h1.imag());
-      if (diff_real<=threshold && diff_imag<=threshold)
-        return true; // Found! Homotopy class already exists, therefore nothing added
-      return false;
+    double diff_real = std::abs(h2.real() - h1.real());
+    double diff_imag = std::abs(h2.imag() - h1.imag());
+    if (diff_real <= threshold && diff_imag <= threshold)
+      return true;  // Found! Homotopy class already exists, therefore nothing added
+    return false;
   }
   /**
    * @brief Checks if the orientation of the computed trajectories differs from that of the best plan of more than the
@@ -425,7 +457,8 @@ public:
    * @param orient_threshold: Threshold paramter for allowed orientation changes in radians
    * @param len_orientation_vector: length of the vector used to compute the start orientation
    */
-  void deletePlansDetouringBackwards(const double orient_threshold, const double len_orientation_vector);
+  void deletePlansDetouringBackwards(
+    const double orient_threshold, const double len_orientation_vector);
   /**
    * @brief Given a plan, computes its start orientation using a vector of length >= len_orientation_vector
    *        starting from the initial pose.
@@ -435,30 +468,33 @@ public:
    * @return: Could the vector for the orientation check be computed? (False if the plan has no pose with a distance
    *          > len_orientation_vector from the start poseq)
    */
-  bool computeStartOrientation(const TebOptimalPlannerPtr plan, const double len_orientation_vector, double& orientation);
-
+  bool computeStartOrientation(
+    const TebOptimalPlannerPtr plan, const double len_orientation_vector, double & orientation);
 
   /**
    * @brief Access config (read-only)
    * @return const pointer to the config instance
    */
-  const TebConfig* config() const {return cfg_;}
+  const TebConfig * config() const { return cfg_; }
 
   /**
    * @brief Access current obstacle container (read-only)
    * @return const pointer to the obstacle container instance
    */
-  const ObstContainer* obstacles() const {return obstacles_;}
+  const ObstContainer * obstacles() const { return obstacles_; }
 
   /**
    * @brief Returns true if the planner is initialized
    */
-  bool isInitialized() const {return initialized_;}
+  bool isInitialized() const { return initialized_; }
 
   /**
    * @brief Clear any existing graph of the homotopy class search
    */
-  void clearGraph() {if(graph_search_) graph_search_->clearGraph();}
+  void clearGraph()
+  {
+    if (graph_search_) graph_search_->clearGraph();
+  }
 
   /**
    * @brief find the index of the currently best TEB in the container
@@ -467,24 +503,21 @@ public:
    */
   int bestTebIdx() const;
 
-
   /**
    * @brief Internal helper function that adds a new equivalence class to the list of known classes only if it is unique.
    * @param eq_class equivalence class that should be tested
    * @param lock if \c true, exclude the H-signature from deletion.
    * @return \c true if the h-signature was added and no duplicate was found, \c false otherwise
    */
-  bool addEquivalenceClassIfNew(const EquivalenceClassPtr& eq_class, bool lock=false);
+  bool addEquivalenceClassIfNew(const EquivalenceClassPtr & eq_class, bool lock = false);
 
   /**
    * @brief Return the current set of equivalence erelations (read-only)
    * @return reference to the internal set of currently tracked equivalence relations
    */
-  const EquivalenceClassContainer& getEquivalenceClassRef() const  {return equivalence_classes_;}
-
+  const EquivalenceClassContainer & getEquivalenceClassRef() const { return equivalence_classes_; }
 
 protected:
-
   /** @name Explore new paths and keep only a single one for each homotopy class */
   //@{
 
@@ -493,8 +526,7 @@ protected:
    * @param eq_class equivalence class that should be tested
    * @return \c true if the h-signature is found, \c false otherwise
    */
-  bool hasEquivalenceClass(const EquivalenceClassPtr& eq_class) const;
-
+  bool hasEquivalenceClass(const EquivalenceClassPtr & eq_class) const;
 
   /**
    * @brief Renew all found h-signatures for the new planning step based on existing TEBs. Optionally detours can be discarded.
@@ -520,45 +552,46 @@ protected:
   //@}
 
   // external objects (store weak pointers)
-  const TebConfig* cfg_; //!< Config class that stores and manages all related parameters
-  ObstContainer* obstacles_; //!< Store obstacles that are relevant for planning
-  const ViaPointContainer* via_points_; //!< Store the current list of via-points
+  const TebConfig * cfg_;      //!< Config class that stores and manages all related parameters
+  ObstContainer * obstacles_;  //!< Store obstacles that are relevant for planning
+  const ViaPointContainer * via_points_;  //!< Store the current list of via-points
 
   // internal objects (memory management owned)
-  TebVisualizationPtr visualization_; //!< Instance of the visualization class (local/global plan, obstacles, ...)
-  TebOptimalPlannerPtr best_teb_; //!< Store the current best teb.
-  RobotFootprintModelPtr robot_model_; //!< Robot model shared instance
+  TebVisualizationPtr
+    visualization_;  //!< Instance of the visualization class (local/global plan, obstacles, ...)
+  TebOptimalPlannerPtr best_teb_;       //!< Store the current best teb.
+  RobotFootprintModelPtr robot_model_;  //!< Robot model shared instance
 
-  const std::vector<geometry_msgs::msg::PoseStamped>* initial_plan_; //!< Store the initial plan if available for a better trajectory initialization
-  EquivalenceClassPtr initial_plan_eq_class_; //!< Store the equivalence class of the initial plan
-  TebOptimalPlannerPtr initial_plan_teb_; //!< Store pointer to the TEB related to the initial plan (use method getInitialPlanTEB() since it checks if initial_plan_teb_ is still included in tebs_.)
+  const std::vector<geometry_msgs::msg::PoseStamped> *
+    initial_plan_;  //!< Store the initial plan if available for a better trajectory initialization
+  EquivalenceClassPtr initial_plan_eq_class_;  //!< Store the equivalence class of the initial plan
+  TebOptimalPlannerPtr
+    initial_plan_teb_;  //!< Store pointer to the TEB related to the initial plan (use method getInitialPlanTEB() since it checks if initial_plan_teb_ is still included in tebs_.)
 
-  TebOptPlannerContainer tebs_; //!< Container that stores multiple local teb planners (for alternative equivalence classes) and their corresponding costs
+  TebOptPlannerContainer
+    tebs_;  //!< Container that stores multiple local teb planners (for alternative equivalence classes) and their corresponding costs
 
-  EquivalenceClassContainer equivalence_classes_; //!< Store all known quivalence classes (e.g. h-signatures) to allow checking for duplicates after finding and adding new ones.
-                                                                            //   The second parameter denotes whether to exclude the class from detour deletion or not (true: force keeping).
+  EquivalenceClassContainer
+    equivalence_classes_;  //!< Store all known quivalence classes (e.g. h-signatures) to allow checking for duplicates after finding and adding new ones.
+  //   The second parameter denotes whether to exclude the class from detour deletion or not (true: force keeping).
 
   std::shared_ptr<GraphSearchInterface> graph_search_;
 
-  rclcpp::Time last_eq_class_switching_time_; //!< Store the time at which the equivalence class changed recently
+  rclcpp::Time
+    last_eq_class_switching_time_;  //!< Store the time at which the equivalence class changed recently
 
-  bool initialized_; //!< Keeps track about the correct initialization of this class
+  bool initialized_;  //!< Keeps track about the correct initialization of this class
 
   TebOptimalPlannerPtr last_best_teb_;  //!< Points to the plan used in the previous control cycle
 
-
-
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-
 };
 
 //! Abbrev. for a shared pointer of a HomotopyClassPlanner instance.
 typedef std::shared_ptr<HomotopyClassPlanner> HomotopyClassPlannerPtr;
 
-
-} // namespace teb_local_planner
+}  // namespace teb_local_planner
 
 // include template implementations / definitions
 #include "teb_local_planner/homotopy_class_planner.hpp"

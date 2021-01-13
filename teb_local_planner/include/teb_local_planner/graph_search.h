@@ -40,23 +40,21 @@
 #define GRAPH_SEARCH_INTERFACE_H
 
 #ifdef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
-  #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_list.hpp>
 #else
-  // Workaround for a bug in boost graph library (concerning directed graphs), boost version 1.48:
-  // boost::add_vertex requires a move constructor/assignment operator in one of the underlying boost objects if C++11 is activated,
-  // but they are missing. The compiler fails due to an implicit deletion. We just deactivate C++11 default functions for now.
-  #define BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
-  #include <boost/graph/adjacency_list.hpp>
-  #undef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
+// Workaround for a bug in boost graph library (concerning directed graphs), boost version 1.48:
+// boost::add_vertex requires a move constructor/assignment operator in one of the underlying boost objects if C++11 is activated,
+// but they are missing. The compiler fails due to an implicit deletion. We just deactivate C++11 default functions for now.
+#define BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
+#include <boost/graph/adjacency_list.hpp>
+#undef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
 #endif
 
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/utility.hpp>
-#include <boost/random.hpp>
-
 #include <Eigen/Core>
-
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/random.hpp>
+#include <boost/utility.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 
 #include "teb_local_planner/equivalence_relations.h"
@@ -65,19 +63,20 @@
 
 namespace teb_local_planner
 {
-
-class HomotopyClassPlanner; // Forward declaration
+class HomotopyClassPlanner;  // Forward declaration
 
 //! Vertex in the graph that is used to find homotopy classes (only stores 2D positions)
 struct HcGraphVertex
 {
 public:
-  Eigen::Vector2d pos; // position of vertices in the map
+  Eigen::Vector2d pos;  // position of vertices in the map
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 //! Abbrev. for the homotopy class search-graph type @see HcGraphVertex
-typedef boost::adjacency_list < boost::listS, boost::vecS, boost::directedS, HcGraphVertex, boost::no_property > HcGraph;
+typedef boost::adjacency_list<
+  boost::listS, boost::vecS, boost::directedS, HcGraphVertex, boost::no_property>
+  HcGraph;
 //! Abbrev. for vertex type descriptors in the homotopy class search-graph
 typedef boost::graph_traits<HcGraph>::vertex_descriptor HcGraphVertexType;
 //! Abbrev. for edge type descriptors in the homotopy class search-graph
@@ -90,13 +89,15 @@ typedef boost::graph_traits<HcGraph>::edge_iterator HcGraphEdgeIterator;
 typedef boost::graph_traits<HcGraph>::adjacency_iterator HcGraphAdjecencyIterator;
 
 //!< Inline function used for calculateHSignature() in combination with HCP graph vertex descriptors
-inline std::complex<long double> getCplxFromHcGraph(HcGraphVertexType vert_descriptor, const HcGraph& graph)
+inline std::complex<long double> getCplxFromHcGraph(
+  HcGraphVertexType vert_descriptor, const HcGraph & graph)
 {
   return std::complex<long double>(graph[vert_descriptor].pos.x(), graph[vert_descriptor].pos.y());
 }
 
 //!< Inline function used for initializing the TEB in combination with HCP graph vertex descriptors
-inline const Eigen::Vector2d& getVector2dFromHcGraph(HcGraphVertexType vert_descriptor, const HcGraph& graph)
+inline const Eigen::Vector2d & getVector2dFromHcGraph(
+  HcGraphVertexType vert_descriptor, const HcGraph & graph)
 {
   return graph[vert_descriptor].pos;
 }
@@ -107,23 +108,26 @@ inline const Eigen::Vector2d& getVector2dFromHcGraph(HcGraphVertexType vert_desc
 class GraphSearchInterface
 {
 public:
+  virtual ~GraphSearchInterface()=0;
 
-  virtual void createGraph(const PoseSE2& start, const PoseSE2& goal, double dist_to_obst, double obstacle_heading_threshold, const geometry_msgs::msg::Twist* start_velocity) = 0;
+  virtual void createGraph(
+    const PoseSE2 & start, const PoseSE2 & goal, double dist_to_obst,
+    double obstacle_heading_threshold, const geometry_msgs::msg::Twist * start_velocity) = 0;
 
   /**
    * @brief Clear any existing graph of the homotopy class search
    */
-  void clearGraph() {graph_.clear();}
+  void clearGraph() { graph_.clear(); }
 
   // HcGraph graph() const {return graph_;}
   // Workaround. graph_ is public for now, beacuse otherwise the compilation fails with the same boost bug mentioned above.
-  HcGraph graph_; //!< Store the graph that is utilized to find alternative homotopy classes.
+  HcGraph graph_;  //!< Store the graph that is utilized to find alternative homotopy classes.
 
 protected:
   /**
    * @brief Protected constructor that should be called by subclasses
    */
-  GraphSearchInterface(const TebConfig& cfg, HomotopyClassPlanner* hcp) : cfg_(&cfg), hcp_(hcp){}
+  GraphSearchInterface(const TebConfig & cfg, HomotopyClassPlanner * hcp) : cfg_(&cfg), hcp_(hcp) {}
 
   /**
    * @brief Depth First Search implementation to find all paths between the start and the specified goal vertex.
@@ -137,25 +141,29 @@ protected:
    * @param goal_orientation Orientation of the goal trajectory pose, required to initialize the trajectory/TEB
    * @param start_velocity start velocity (optional)
    */
-  void DepthFirst(HcGraph& g, std::vector<HcGraphVertexType>& visited, const HcGraphVertexType& goal, double start_orientation, double goal_orientation, const geometry_msgs::msg::Twist* start_velocity);
-
+  void DepthFirst(
+    HcGraph & g, std::vector<HcGraphVertexType> & visited, const HcGraphVertexType & goal,
+    double start_orientation, double goal_orientation,
+    const geometry_msgs::msg::Twist * start_velocity);
 
 protected:
-    const TebConfig* cfg_; //!< Config class that stores and manages all related parameters
-    HomotopyClassPlanner* const hcp_; //!< Raw pointer to the HomotopyClassPlanner. The HomotopyClassPlanner itself is guaranteed to outlive the graph search class it is holding.
+  const TebConfig * cfg_;  //!< Config class that stores and manages all related parameters
+  HomotopyClassPlanner * const
+    hcp_;  //!< Raw pointer to the HomotopyClassPlanner. The HomotopyClassPlanner itself is guaranteed to outlive the graph search class it is holding.
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-
-
 class lrKeyPointGraph : public GraphSearchInterface
 {
 public:
-  lrKeyPointGraph(const TebConfig& cfg, HomotopyClassPlanner* hcp) : GraphSearchInterface(cfg, hcp){}
+  lrKeyPointGraph(const TebConfig & cfg, HomotopyClassPlanner * hcp)
+  : GraphSearchInterface(cfg, hcp)
+  {
+  }
 
-  virtual ~lrKeyPointGraph(){}
+  virtual ~lrKeyPointGraph() override {}
 
   /**
    * @brief Create a graph containing points in the global frame that can be used to explore new possible paths between start and goal.
@@ -172,19 +180,20 @@ public:
    * @param obstacle_heading_threshold Value of the normalized scalar product between obstacle heading and goal heading in order to take them (obstacles) into account [0,1]
    * @param start_velocity start velocity (optional)
    */
-  virtual void createGraph(const PoseSE2& start, const PoseSE2& goal, double dist_to_obst, double obstacle_heading_threshold, const geometry_msgs::msg::Twist* start_velocity);
+  virtual void createGraph(
+    const PoseSE2 & start, const PoseSE2 & goal, double dist_to_obst,
+    double obstacle_heading_threshold, const geometry_msgs::msg::Twist * start_velocity) override;
 };
-
-
-
 
 class ProbRoadmapGraph : public GraphSearchInterface
 {
 public:
-  ProbRoadmapGraph(const TebConfig& cfg, HomotopyClassPlanner* hcp) : GraphSearchInterface(cfg, hcp){}
+  ProbRoadmapGraph(const TebConfig & cfg, HomotopyClassPlanner * hcp)
+  : GraphSearchInterface(cfg, hcp)
+  {
+  }
 
-  virtual ~ProbRoadmapGraph(){}
-
+  virtual ~ProbRoadmapGraph() override {}
 
   /**
    * @brief Create a graph and sample points in the global frame that can be used to explore new possible paths between start and goal.
@@ -202,11 +211,15 @@ public:
    * @param obstacle_heading_threshold Value of the normalized scalar product between obstacle heading and goal heading in order to take them (obstacles) into account [0,1]
    * @param start_velocity start velocity (optional)
    */
-  virtual void createGraph(const PoseSE2& start, const PoseSE2& goal, double dist_to_obst, double obstacle_heading_threshold, const geometry_msgs::msg::Twist* start_velocity);
+  virtual void createGraph(
+    const PoseSE2 & start, const PoseSE2 & goal, double dist_to_obst,
+    double obstacle_heading_threshold, const geometry_msgs::msg::Twist * start_velocity) override;
 
 private:
-    boost::random::mt19937 rnd_generator_; //!< Random number generator used by createProbRoadmapGraph to sample graph keypoints.
+  //TODO: replace the following boost with std functions.
+  boost::random::mt19937
+    rnd_generator_;  //!< Random number generator used by createProbRoadmapGraph to sample graph keypoints.
 };
-} // end namespace
+}  // namespace teb_local_planner
 
-#endif // GRAPH_SEARCH_INTERFACE_H
+#endif  // GRAPH_SEARCH_INTERFACE_H

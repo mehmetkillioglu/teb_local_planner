@@ -194,7 +194,7 @@ public:
     * @brief Check if two candidate classes are equivalent
     * @param other The other equivalence class to test with
     */
-    virtual bool isEqual(const EquivalenceClass& other) const
+    virtual bool isEqual(const EquivalenceClass& other) const override
     {
         const HSignature* hother = dynamic_cast<const HSignature*>(&other); // TODO: better architecture without dynamic_cast
         if (hother)
@@ -214,7 +214,7 @@ public:
     * @brief Check if the equivalence value is detected correctly
     * @return Returns false, if the equivalence class detection failed, e.g. if nan- or inf values occur.
     */
-    virtual bool isValid() const
+    virtual bool isValid() const override
     {
         return std::isfinite(hsignature_.real()) && std::isfinite(hsignature_.imag());
     }
@@ -223,7 +223,7 @@ public:
      * @brief Check if the trajectory is non-looping around an obstacle.
      * @return Returns always true, as this cannot be detected by this kind of H-Signature.
      */
-    virtual bool isReasonable() const
+    virtual bool isReasonable() const override
     {
       return true;
     }
@@ -360,7 +360,7 @@ public:
      *
      * @param other The other equivalence class to test with
      */
-    virtual bool isEqual(const EquivalenceClass& other) const
+    virtual bool isEqual(const EquivalenceClass& other) const override
     {
       const HSignature3d* hother = dynamic_cast<const HSignature3d*>(&other); // TODO: better architecture without dynamic_cast
       if (hother)
@@ -391,7 +391,7 @@ public:
      * @brief Check if the equivalence value is detected correctly
      * @return Returns false, if the equivalence class detection failed, e.g. if nan- or inf values occur.
      */
-     virtual bool isValid() const
+     virtual bool isValid() const override
      {
         for(const double& value : hsignature3d_)
         {
@@ -405,7 +405,7 @@ public:
      * @brief Check if the trajectory is non-looping around any obstacle. Values greater than 1 indicate a looping trajectory.
      * @return Returns false, if the trajectory loops around an obstacle
      */
-    virtual bool isReasonable() const
+    virtual bool isReasonable() const override
     {
       for(const double& value : hsignature3d_)
       {

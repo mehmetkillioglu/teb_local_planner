@@ -93,7 +93,7 @@ public:
   /**
     * @brief  Destructor of the plugin
     */
-  ~TebLocalPlannerROS();
+  virtual ~TebLocalPlannerROS() override;
 
   /**
    * @brief Configure the teb plugin
@@ -102,16 +102,16 @@ public:
    * @param tf Pointer to a transform listener
    * @param costmap_ros Cost map representing occupied and free space
    */
-  void configure(
+  virtual void configure(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, std::string name,
     const std::shared_ptr<tf2_ros::Buffer> & tf,
     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros) override;
 
-  void activate() override;
+  virtual void activate() override;
 
-  void deactivate() override;
+  virtual void deactivate() override;
 
-  void cleanup() override;
+  virtual void cleanup() override;
 
   /**
     * @brief Initializes the teb plugin
@@ -123,7 +123,7 @@ public:
     * @param orig_global_plan The plan to pass to the local planner
     * @return
     */
-  void setPlan(const nav_msgs::msg::Path & orig_global_plan) override;
+  virtual void setPlan(const nav_msgs::msg::Path & orig_global_plan) override;
 
   /**
     * @brief Given the current position, orientation, and velocity of the robot, compute velocity commands to send to the base
@@ -131,8 +131,9 @@ public:
     * @param velocity is the current velocity
     * @return velocity commands to send to the base
     */
-  geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped & pose, const geometry_msgs::msg::Twist & velocity);
+  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
+    const geometry_msgs::msg::PoseStamped & pose,
+    const geometry_msgs::msg::Twist & velocity) override;
 
   /** @name Public utility functions/methods */
   //@{
@@ -358,8 +359,8 @@ private:
   CostmapROSPtr costmap_ros_;               // shared_ptr to costmap.
   std::string name_;  //!< Name of TEB plugin known known by the controller server.
   //!< Pointer to the 2d costmap (obtained from costmap_ros_)
-  nav2_costmap_2d::Costmap2D * costmap_; //TODO: remove this member variable
-  rclcpp::Clock::SharedPtr clock_; //TODO: remove this member variable
+  nav2_costmap_2d::Costmap2D * costmap_;  //TODO: remove this member variable
+  rclcpp::Clock::SharedPtr clock_;        //TODO: remove this member variable
 
   // TEB configuration
   TebConfig::UniquePtr cfg_;  //!< Config class that stores and manages all related parameters
@@ -378,7 +379,7 @@ private:
   pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> costmap_converter_loader_;
   //!< Store the current costmap_converter
   std::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
-  rclcpp::Node::SharedPtr intra_proc_node_; // the node holds costmap converter.
+  rclcpp::Node::SharedPtr intra_proc_node_;  // the node holds costmap converter.
 
   // obstacles
   //!< Subscriber for custom obstacles received via a ObstacleMsg.

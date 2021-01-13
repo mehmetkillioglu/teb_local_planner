@@ -352,65 +352,68 @@ protected:
 
 private:
   // Definition of member variables
-  nav2_util::LifecycleNode::SharedPtr nh_;
-  rclcpp::Clock::SharedPtr clock_;
-  rclcpp::Node::SharedPtr intra_proc_node_;
-  // external objects (store weak pointers)
-  CostmapROSPtr
-    costmap_ros_;  //!< Pointer to the costmap ros wrapper, received from the navigation stack
-  nav2_costmap_2d::Costmap2D *
-    costmap_;                 //!< Pointer to the 2d costmap (obtained from the costmap ros wrapper)
-  TFBufferPtr tf_;            //!< pointer to Transform Listener
+  // passed from the controller server.
+  nav2_util::LifecycleNode::SharedPtr nh_;  // shared_ptr to the controller server node.
+  TFBufferPtr tf_;                          // shared_ptr to tf2_ros::Buffer.
+  CostmapROSPtr costmap_ros_;               // shared_ptr to costmap.
+  std::string name_;  //!< Name of TEB plugin known known by the controller server.
+  //!< Pointer to the 2d costmap (obtained from costmap_ros_)
+  nav2_costmap_2d::Costmap2D * costmap_; //TODO: remove this member variable
+  rclcpp::Clock::SharedPtr clock_; //TODO: remove this member variable
+
+  // TEB configuration
   TebConfig::UniquePtr cfg_;  //!< Config class that stores and manages all related parameters
 
-  // internal objects (memory management owned)
+  // workers.
   PlannerInterfacePtr planner_;  //!< Instance of the underlying optimal planner class
-  ObstContainer
-    obstacles_;  //!< Obstacle vector that should be considered during local trajectory optimization
-  ViaPointContainer
-    via_points_;  //!< Container of via-points that should be considered during local trajectory optimization
-  TebVisualizationPtr
-    visualization_;  //!< Instance of the visualization class (local/global plan, obstacles, ...)
+  //!< Instance of the visualization class (local/global plan, obstacles, ...)
+  TebVisualizationPtr visualization_;
+
+  // footprint critic
+  // TODO: check whey here no pluginlib
   std::shared_ptr<dwb_critics::ObstacleFootprintCritic> costmap_model_;
-  FailureDetector failure_detector_;  //!< Detect if the robot got stucked
 
-  std::vector<geometry_msgs::msg::PoseStamped> global_plan_;  //!< Store the current global plan
+  // costmap converter plugin
+  //!< Load costmap converter plugins at runtime
+  pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> costmap_converter_loader_;
+  //!< Store the current costmap_converter
+  std::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_;
+  rclcpp::Node::SharedPtr intra_proc_node_; // the node holds costmap converter.
 
-  pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons>
-    costmap_converter_loader_;  //!< Load costmap converter plugins at runtime
-  std::shared_ptr<costmap_converter::BaseCostmapToPolygons>
-    costmap_converter_;  //!< Store the current costmap_converter
-
-  //std::shared_ptr< dynamic_reconfigure::Server<TebLocalPlannerReconfigureConfig> > dynamic_recfg_; //!< Dynamic reconfigure server to allow config modifications at runtime
-  rclcpp::Subscription<costmap_converter_msgs::msg::ObstacleArrayMsg>::SharedPtr
-    custom_obst_sub_;             //!< Subscriber for custom obstacles received via a ObstacleMsg.
+  // obstacles
+  //!< Subscriber for custom obstacles received via a ObstacleMsg.
+  rclcpp::Subscription<costmap_converter_msgs::msg::ObstacleArrayMsg>::SharedPtr custom_obst_sub_;
   std::mutex custom_obst_mutex_;  //!< Mutex that locks the obstacle array (multi-threaded)
-  costmap_converter_msgs::msg::ObstacleArrayMsg
-    custom_obstacle_msg_;  //!< Copy of the most recent obstacle message
+                                  //!< Copy of the most recent obstacle message
+  costmap_converter_msgs::msg::ObstacleArrayMsg custom_obstacle_msg_;
+  //!< Obstacle vector that should be considered during local trajectory optimization
+  ObstContainer obstacles_;
 
-  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr
-    via_points_sub_;  //!< Subscriber for custom via-points received via a Path msg.
-  bool
-    custom_via_points_active_;  //!< Keep track whether valid via-points have been received from via_points_sub_
-  std::mutex via_point_mutex_;  //!< Mutex that locks the via_points container (multi-threaded)
+  //via_points_
+  //!< Subscriber for custom via-points.
+  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr via_points_sub_;
+  //!< whether valid via-points have been received from via_points_sub_
+  bool custom_via_points_active_;
+  //!< Mutex that locks the via_points container (multi-threaded)
+  //!< Container of via-points that should be considered during local trajectory optimization
+  ViaPointContainer via_points_;
+  std::mutex via_point_mutex_;
 
-  PoseSE2 robot_pose_;  //!< Store current robot pose
-  PoseSE2 robot_goal_;  //!< Store current robot goal
-  geometry_msgs::msg::Twist
-    robot_vel_;  //!< Store current robot translational and angular velocity (vx, vy, omega)
-  rclcpp::Time
-    time_last_infeasible_plan_;  //!< Store at which time stamp the last infeasible plan was detected
-  int
-    no_infeasible_plans_;  //!< Store how many times in a row the planner failed to find a feasible plan.
-  rclcpp::Time
-    time_last_oscillation_;        //!< Store at which time stamp the last oscillation was detected
-  RotType last_preferred_rotdir_;  //!< Store recent preferred turning direction
-  geometry_msgs::msg::Twist
-    last_cmd_;  //!< Store the last control command generated in computeVelocityCommands()
+  // controller state.
+  std::vector<geometry_msgs::msg::PoseStamped> global_plan_;  //!< Store the current global plan
+  FailureDetector failure_detector_;                          //!< Detect if the robot got stucked
+  PoseSE2 robot_pose_;                                        //!< Store current robot pose
+  PoseSE2 robot_goal_;                                        //!< Store current robot goal
+  geometry_msgs::msg::Twist robot_vel_;     //!< current robot translational and angular velocity
+  rclcpp::Time time_last_infeasible_plan_;  //!< time stamp the last infeasible plan was detected
+  int no_infeasible_plans_;  //!< times in a row the planner failed to find a feasible plan.
+  rclcpp::Time time_last_oscillation_;  //!< time stamp the last oscillation was detected
+  RotType last_preferred_rotdir_;       //!< recent preferred turning direction
+  geometry_msgs::msg::Twist last_cmd_;  //!< last control command
 
+  // robot dimension
   std::vector<geometry_msgs::msg::Point> footprint_spec_;  //!< Store the footprint of the robot
-  double
-    robot_inscribed_radius_;  //!< The radius of the inscribed circle of the robot (collision possible)
+  double robot_inscribed_radius_;     //!< The radius of the inscribed circle of the robot
   double robot_circumscribed_radius;  //!< The radius of the circumscribed circle of the robot
 
   std::string global_frame_;      //!< The frame in which the controller will run
@@ -418,7 +421,6 @@ private:
 
   // flags
   bool initialized_;  //!< Keeps track about the correct initialization of this class
-  std::string name_;  //!< Name of plugin ID
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

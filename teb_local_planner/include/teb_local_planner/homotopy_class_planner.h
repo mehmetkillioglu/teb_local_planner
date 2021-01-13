@@ -55,6 +55,7 @@
 
 #include "teb_local_planner/equivalence_relations.h"
 #include "teb_local_planner/graph_search.h"
+#include "teb_local_planner/h_signature.h"
 #include "teb_local_planner/obstacles.h"
 #include "teb_local_planner/optimal_planner.h"
 #include "teb_local_planner/planner_interface.h"
@@ -316,7 +317,27 @@ public:
   template <typename BidirIter, typename Fun>
   TebOptimalPlannerPtr addAndInitNewTeb(
     BidirIter path_start, BidirIter path_end, Fun fun_position, double start_orientation,
-    double goal_orientation, const geometry_msgs::msg::Twist * start_velocity);
+    double goal_orientation, const geometry_msgs::msg::Twist * start_velocity)
+  {
+    TebOptimalPlannerPtr candidate =
+      TebOptimalPlannerPtr(new TebOptimalPlanner(node_, *cfg_, obstacles_, robot_model_));
+
+    candidate->teb().initTrajectoryToGoal(
+      path_start, path_end, fun_position, cfg_->robot.max_vel_x, cfg_->robot.max_vel_theta,
+      cfg_->robot.acc_lim_x, cfg_->robot.acc_lim_theta, start_orientation, goal_orientation,
+      cfg_->trajectory.min_samples, cfg_->trajectory.allow_init_with_backwards_motion);
+
+    if (start_velocity) candidate->setVelocityStart(*start_velocity);
+
+    EquivalenceClassPtr H = calculateEquivalenceClass(
+      candidate->teb().poses().begin(), candidate->teb().poses().end(), getCplxFromVertexPosePtr,
+      obstacles_, candidate->teb().timediffs().begin(), candidate->teb().timediffs().end());
+
+    if (addEquivalenceClassIfNew(H)) {
+      tebs_.push_back(candidate);
+      return tebs_.back();
+    }
+  }
 
   /**
    * @brief Add a new Teb to the internal trajectory container, if this teb constitutes a new equivalence class. Initialize it with a simple straight line between a given start and goal
@@ -414,8 +435,19 @@ public:
     BidirIter path_start, BidirIter path_end, Fun fun_cplx_point,
     const ObstContainer * obstacles = NULL,
     boost::optional<TimeDiffSequence::iterator> timediff_start = boost::none,
-    boost::optional<TimeDiffSequence::iterator> timediff_end = boost::none);
-
+    boost::optional<TimeDiffSequence::iterator> timediff_end = boost::none)
+  {
+    if (cfg_->obstacles.include_dynamic_obstacles) {
+      HSignature3d * H = new HSignature3d(*cfg_);
+      H->calculateHSignature(
+        path_start, path_end, fun_cplx_point, obstacles, timediff_start, timediff_end);
+      return EquivalenceClassPtr(H);
+    } else {
+      HSignature * H = new HSignature(*cfg_);
+      H->calculateHSignature(path_start, path_end, fun_cplx_point, obstacles);
+      return EquivalenceClassPtr(H);
+    }
+  }
   /**
    * @brief Read-only access to the internal trajectory container.
    * @return read-only reference to the teb container.
@@ -592,8 +624,5 @@ public:
 typedef std::shared_ptr<HomotopyClassPlanner> HomotopyClassPlannerPtr;
 
 }  // namespace teb_local_planner
-
-// include template implementations / definitions
-#include "teb_local_planner/homotopy_class_planner.hpp"
 
 #endif /* HOMOTOPY_CLASS_PLANNER_H_ */

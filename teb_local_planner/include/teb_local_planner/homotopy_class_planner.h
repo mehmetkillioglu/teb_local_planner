@@ -312,7 +312,7 @@ public:
    * @param start_velocity start velocity (optional)
    * @tparam BidirIter Bidirectional iterator type
    * @tparam Fun unyary function that transforms the dereferenced iterator into an Eigen::Vector2d
-   * @return Shared pointer to the newly created teb optimal planner
+   * @return Shared pointer to the newly created teb optimal planner, nullptr if no new teb added.
    */
   template <typename BidirIter, typename Fun>
   TebOptimalPlannerPtr addAndInitNewTeb(
@@ -327,7 +327,9 @@ public:
       cfg_->robot.acc_lim_x, cfg_->robot.acc_lim_theta, start_orientation, goal_orientation,
       cfg_->trajectory.min_samples, cfg_->trajectory.allow_init_with_backwards_motion);
 
-    if (start_velocity) candidate->setVelocityStart(*start_velocity);
+    if (start_velocity) {
+      candidate->setVelocityStart(*start_velocity);
+    }
 
     EquivalenceClassPtr H = calculateEquivalenceClass(
       candidate->teb().poses().begin(), candidate->teb().poses().end(), getCplxFromVertexPosePtr,
@@ -336,6 +338,8 @@ public:
     if (addEquivalenceClassIfNew(H)) {
       tebs_.push_back(candidate);
       return tebs_.back();
+    } else {
+      return nullptr;
     }
   }
 

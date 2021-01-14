@@ -35,18 +35,19 @@
  *
  * Author: Christoph Rösmann
  *********************************************************************/
-
+//TODO: remove unnecessary template code
+//TODO: correctly handle function default values.
+//TODO: don't use optional with floating point numbers
+//TODO: And range check logic for configurable parameters.
 #ifndef VISUALIZATION_H_
 #define VISUALIZATION_H_
 
-
-
 // teb stuff
+#include <teb_msgs/msg/feedback_msg.hpp>
+
+#include "teb_local_planner/robot_footprint_model.h"
 #include "teb_local_planner/teb_config.h"
 #include "teb_local_planner/timed_elastic_band.h"
-#include "teb_local_planner/robot_footprint_model.h"
-
-#include <teb_msgs/msg/feedback_msg.hpp>
 
 // boost
 #include <boost/graph/adjacency_list.hpp>
@@ -54,26 +55,23 @@
 
 // std
 #include <iterator>
-
 #include <nav2_util/lifecycle_node.hpp>
-
 #include <rclcpp_lifecycle/lifecycle_publisher.hpp>
 
 // messages
-#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <tf2/transform_datatypes.h>
+
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/color_rgba.hpp>
-#include <tf2/transform_datatypes.h>
 #include <visualization_msgs/msg/marker.hpp>
 
 namespace teb_local_planner
 {
-  
-class TebOptimalPlanner; //!< Forward Declaration 
+class TebOptimalPlanner;  //!< Forward Declaration
 
-  
 /**
  * @class TebVisualization
  * @brief Visualize stuff from the teb_local_planner
@@ -86,42 +84,44 @@ public:
    * @param nh local rclcpp::Node::SharedPtr
    * @param cfg const reference to the TebConfig class for parameters
    */
-  TebVisualization(const rclcpp_lifecycle::LifecycleNode::SharedPtr & nh, const TebConfig& cfg);
-  
+  TebVisualization(const rclcpp_lifecycle::LifecycleNode::SharedPtr & nh, const TebConfig & cfg);
+
   /** @name Publish to topics */
   //@{
-  
+
   /**
    * @brief Publish a given global plan to the ros topic \e ../../global_plan
    * @param global_plan Pose array describing the global plan
    */
-  void publishGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped>& global_plan) const;
-  
+  void publishGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & global_plan) const;
+
   /**
    * @brief Publish a given local plan to the ros topic \e ../../local_plan
    * @param local_plan Pose array describing the local plan
    */
-  void publishLocalPlan(const std::vector<geometry_msgs::msg::PoseStamped>& local_plan) const;
-  
+  void publishLocalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & local_plan) const;
+
   /**
    * @brief Publish Timed_Elastic_Band related stuff (local plan, pose sequence).
-   * 
-   * Given a Timed_Elastic_Band instance, publish the local plan to  \e ../../local_plan 
+   *
+   * Given a Timed_Elastic_Band instance, publish the local plan to  \e ../../local_plan
    * and the pose sequence to  \e ../../teb_poses.
    * @param teb const reference to a Timed_Elastic_Band
    */
-  void publishLocalPlanAndPoses(const TimedElasticBand& teb) const;
-  
+  void publishLocalPlanAndPoses(const TimedElasticBand & teb) const;
+
   /**
    * @brief Publish the visualization of the robot model
-   * 
+   *
    * @param current_pose Current pose of the robot
    * @param robot_model Subclass of BaseRobotFootprintModel
    * @param ns Namespace for the marker objects
    * @param color Color of the footprint
    */
-  void publishRobotFootprintModel(const PoseSE2& current_pose, const BaseRobotFootprintModel& robot_model, const std::string& ns = "RobotFootprintModel",
-                                  const std_msgs::msg::ColorRGBA& color = toColorMsg(0.5, 0.0, 0.8, 0.0));
+  void publishRobotFootprintModel(
+    const PoseSE2 & current_pose, const BaseRobotFootprintModel & robot_model,
+    const std::string & ns = "RobotFootprintModel",
+    const std_msgs::msg::ColorRGBA & color = toColorMsg(0.5, 0.0, 0.8, 0.0));
 
   /**
    * @brief Publish the robot footprints related to infeasible poses
@@ -129,21 +129,24 @@ public:
    * @param current_pose Current pose of the robot
    * @param robot_model Subclass of BaseRobotFootprintModel
    */
-  void publishInfeasibleRobotPose(const PoseSE2& current_pose, const BaseRobotFootprintModel& robot_model);
-  
+  void publishInfeasibleRobotPose(
+    const PoseSE2 & current_pose, const BaseRobotFootprintModel & robot_model);
+
   /**
    * @brief Publish obstacle positions to the ros topic \e ../../teb_markers
    * @todo Move filling of the marker message to polygon class in order to avoid checking types.
    * @param obstacles Obstacle container
    */
-  void publishObstacles(const ObstContainer& obstacles) const;
+  void publishObstacles(const ObstContainer & obstacles) const;
 
   /**
    * @brief Publish via-points to the ros topic \e ../../teb_markers
    * @param via_points via-point container
    */
-  void publishViaPoints(const std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> >& via_points, const std::string& ns = "ViaPoints") const;
-  
+  void publishViaPoints(
+    const std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > & via_points,
+    const std::string & ns = "ViaPoints") const;
+
   /**
    * @brief Publish a boost::adjacency_list (boost's graph datatype) via markers.
    * @remarks Make sure that vertices of the graph contain a member \c pos as \c Eigen::Vector2d type
@@ -153,18 +156,140 @@ public:
    * @tparam GraphType boost::graph object in which vertices has the field/member \c pos.
    */
   template <typename GraphType>
-  void publishGraph(const GraphType& graph, const std::string& ns_prefix = "Graph");
-  
+  void publishGraph(const GraphType & graph, const std::string & ns_prefix = "Graph")
+  {
+    if (printErrorWhenNotInitialized()) return;
+
+    typedef typename boost::graph_traits<GraphType>::vertex_iterator GraphVertexIterator;
+    typedef typename boost::graph_traits<GraphType>::edge_iterator GraphEdgeIterator;
+
+    // Visualize Edges
+    visualization_msgs::msg::Marker marker;
+    marker.header.frame_id = cfg_->map_frame;
+    marker.header.stamp = nh_->now();
+    marker.ns = ns_prefix + "Edges";
+    marker.id = 0;
+    marker.pose.orientation.w = 1.0;
+// #define TRIANGLE
+#ifdef TRIANGLE
+    marker.type = visualization_msgs::msg::Marker::TRIANGLE_LIST;
+#else
+    marker.type = visualization_msgs::msg::Marker::LINE_LIST;
+#endif
+    marker.action = visualization_msgs::msg::Marker::ADD;
+
+    GraphEdgeIterator it_edge, end_edges;
+    for (boost::tie(it_edge, end_edges) = boost::edges(graph); it_edge != end_edges; ++it_edge) {
+#ifdef TRIANGLE
+      geometry_msgs::msg::Point point_start1;
+      point_start1.x = graph[boost::source(*it_edge, graph)].pos[0] + 0.05;
+      point_start1.y = graph[boost::source(*it_edge, graph)].pos[1] - 0.05;
+      point_start1.z = 0;
+      marker.points.push_back(point_start1);
+      geometry_msgs::msg::Point point_start2;
+      point_start2.x = graph[boost::source(*it_edge, graph)].pos[0] - 0.05;
+      point_start2.y = graph[boost::source(*it_edge, graph)].pos[1] + 0.05;
+      point_start2.z = 0;
+      marker.points.push_back(point_start2);
+
+#else
+      geometry_msgs::msg::Point point_start;
+      point_start.x = graph[boost::source(*it_edge, graph)].pos[0];
+      point_start.y = graph[boost::source(*it_edge, graph)].pos[1];
+      point_start.z = 0;
+      marker.points.push_back(point_start);
+#endif
+      geometry_msgs::msg::Point point_end;
+      point_end.x = graph[boost::target(*it_edge, graph)].pos[0];
+      point_end.y = graph[boost::target(*it_edge, graph)].pos[1];
+      point_end.z = 0;
+      marker.points.push_back(point_end);
+
+      // add color
+      std_msgs::msg::ColorRGBA color;
+      color.a = 1.0;
+      color.r = 0;
+      color.g = 0;
+      color.b = 1;
+      marker.colors.push_back(color);
+      marker.colors.push_back(color);
+#ifdef TRIANGLE
+      marker.colors.push_back(color);
+#endif
+    }
+
+#ifdef TRIANGLE
+    marker.scale.x = 1;
+    marker.scale.y = 1;
+    marker.scale.z = 1;
+#else
+    marker.scale.x = 0.01;
+#endif
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+
+    // Now publish edge markers
+    teb_marker_pub_->publish(marker);
+
+    // Visualize vertices
+    marker.header.frame_id = cfg_->map_frame;
+    marker.header.stamp = nh_->now();
+    marker.ns = ns_prefix + "Vertices";
+    marker.id = 0;
+    marker.type = visualization_msgs::msg::Marker::POINTS;
+    marker.action = visualization_msgs::msg::Marker::ADD;
+
+    GraphVertexIterator it_vert, end_vert;
+    for (boost::tie(it_vert, end_vert) = boost::vertices(graph); it_vert != end_vert; ++it_vert) {
+      geometry_msgs::msg::Point point;
+      point.x = graph[*it_vert].pos[0];
+      point.y = graph[*it_vert].pos[1];
+      point.z = 0;
+      marker.points.push_back(point);
+      // add color
+
+      std_msgs::msg::ColorRGBA color;
+      color.a = 1.0;
+      if (it_vert == end_vert - 1) {
+        color.r = 1;
+        color.g = 0;
+        color.b = 0;
+      } else {
+        color.r = 0;
+        color.g = 1;
+        color.b = 0;
+      }
+      marker.colors.push_back(color);
+    }
+    // set first color (start vertix) to blue
+    if (!marker.colors.empty()) {
+      marker.colors.front().b = 1;
+      marker.colors.front().g = 0;
+    }
+
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+
+    // Now publish vertex markers
+    teb_marker_pub_->publish(marker);
+  }
+
   /**
    * @brief Publish multiple 2D paths (each path given as a point sequence) from a container class.
-   * 
+   *
    * Provide a std::vector< std::vector< T > > in which T.x() and T.y() exist
    * and std::vector could be individually substituded by std::list / std::deque /...
-   * 
+   *
    * A common point-type for object T could be Eigen::Vector2d.
-   * 
+   *
    * T could be also a raw pointer std::vector< std::vector< T* > >.
-   * 
+   *
    * @code
    * 	typedef std::vector<Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > PathType; // could be a list or deque as well ...
    *    std::vector<PathType> path_container(2); // init 2 empty paths; the container could be a list or deque as well ...
@@ -172,8 +297,8 @@ public:
    * 	// Fill path_container.at(1) with Eigen::Vector2d elements, we skip that here
    *    publishPathContainer( path_container.begin(), path_container.end() );
    * @endcode
-   * 
-   * @remarks Actually the underlying path does not necessarily need to be a Eigen::Vector2d sequence. 
+   *
+   * @remarks Actually the underlying path does not necessarily need to be a Eigen::Vector2d sequence.
    *          Eigen::Vector2d can be replaced with any datatype that implement public x() and y() methods.\n
    * @param first Bidirectional iterator pointing to the begin of the path
    * @param last Bidirectional iterator pointing to the end of the path
@@ -181,19 +306,64 @@ public:
    * @tparam BidirIter Bidirectional iterator to a 2D path (sequence of Eigen::Vector2d elements) in a container
    */
   template <typename BidirIter>
-  void publishPathContainer(BidirIter first, BidirIter last, const std::string& ns = "PathContainer");
-  
+  void publishPathContainer(
+    BidirIter first, BidirIter last, const std::string & ns = "PathContainer")
+  {
+    if (printErrorWhenNotInitialized()) return;
+
+    visualization_msgs::msg::Marker marker;
+    marker.header.frame_id = cfg_->map_frame;
+    marker.header.stamp = nh_->now();
+    marker.ns = ns;
+    marker.id = 0;
+    marker.type = visualization_msgs::msg::Marker::LINE_LIST;
+    marker.action = visualization_msgs::msg::Marker::ADD;
+
+    typedef typename std::iterator_traits<BidirIter>::value_type
+      PathType;  // Get type of the path (point container)
+
+    // Iterate through path container
+    while (first != last) {
+      // iterate single path points
+      typename PathType::const_iterator it_point, end_point;
+      for (it_point = first->begin(), end_point = std::prev(first->end()); it_point != end_point;
+           ++it_point) {
+        geometry_msgs::msg::Point point_start;
+        point_start.x = get_const_reference(*it_point).x();
+        point_start.y = get_const_reference(*it_point).y();
+        point_start.z = 0;
+        marker.points.push_back(point_start);
+
+        geometry_msgs::msg::Point point_end;
+        point_end.x = get_const_reference(*std::next(it_point)).x();
+        point_end.y = get_const_reference(*std::next(it_point)).y();
+        point_end.z = 0;
+        marker.points.push_back(point_end);
+      }
+      ++first;
+    }
+    marker.scale.x = 0.01;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+
+    teb_marker_pub_->publish(marker);
+  }
+
   /**
    * @brief Publish multiple Tebs from a container class (publish as marker message).
-   * 
+   *
    * @param teb_planner Container of std::shared_ptr< TebOptPlannerPtr >
    * @param ns Namespace for the marker objects
    */
-  void publishTebContainer(const std::vector< std::shared_ptr<TebOptimalPlanner> >& teb_planner, const std::string& ns = "TebContainer");
-    
+  void publishTebContainer(
+    const std::vector<std::shared_ptr<TebOptimalPlanner> > & teb_planner,
+    const std::string & ns = "TebContainer");
+
   /**
    * @brief Publish a feedback message (multiple trajectory version)
-   * 
+   *
    * The feedback message contains the all planned trajectory candidates (e.g. if planning in distinctive topologies is turned on).
    * Each trajectory is composed of the sequence of poses, the velocity profile and temporal information.
    * The feedback message also contains a list of active obstacles.
@@ -201,24 +371,27 @@ public:
    * @param selected_trajectory_idx Idx of the currently selected trajectory in \c teb_planners
    * @param obstacles Container of obstacles
    */
-  void publishFeedbackMessage(const std::vector< std::shared_ptr<TebOptimalPlanner> >& teb_planners, unsigned int selected_trajectory_idx, const ObstContainer& obstacles);
-  
+  void publishFeedbackMessage(
+    const std::vector<std::shared_ptr<TebOptimalPlanner> > & teb_planners,
+    unsigned int selected_trajectory_idx, const ObstContainer & obstacles);
+
   /**
    * @brief Publish a feedback message (single trajectory overload)
-   * 
+   *
    * The feedback message contains the planned trajectory
    * that is composed of the sequence of poses, the velocity profile and temporal information.
    * The feedback message also contains a list of active obstacles.
    * @param teb_planner the planning instance
    * @param obstacles Container of obstacles
    */
-  void publishFeedbackMessage(const TebOptimalPlanner& teb_planner, const ObstContainer& obstacles);
-  
+  void publishFeedbackMessage(
+    const TebOptimalPlanner & teb_planner, const ObstContainer & obstacles);
+
   nav2_util::CallbackReturn on_configure();
   nav2_util::CallbackReturn on_activate();
   nav2_util::CallbackReturn on_deactivate();
   nav2_util::CallbackReturn on_cleanup();
-  
+
   //@}
 
   /**
@@ -230,9 +403,8 @@ public:
    * @return Color message
    */
   static std_msgs::msg::ColorRGBA toColorMsg(double a, double r, double g, double b);
-  
+
 protected:
-  
   /**
    * @brief Small helper function that checks if initialize() has been called and prints an error message if not.
    * @return \c true if not initialized, \c false if everything is ok
@@ -240,20 +412,24 @@ protected:
   bool printErrorWhenNotInitialized() const;
 
   nav2_util::LifecycleNode::SharedPtr nh_;
-  
-  rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr global_plan_pub_; //!< Publisher for the global plan
-  rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr local_plan_pub_; //!< Publisher for the local plan
-  rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseArray>::SharedPtr teb_poses_pub_; //!< Publisher for the trajectory pose sequence
-  rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>::SharedPtr teb_marker_pub_; //!< Publisher for visualization markers
-  rclcpp_lifecycle::LifecyclePublisher<teb_msgs::msg::FeedbackMsg>::SharedPtr feedback_pub_; //!< Publisher for the feedback message for analysis and debug purposes
-  
-  const TebConfig* cfg_; //!< Config class that stores and manages all related parameters
-  
-  bool initialized_; //!< Keeps track about the correct initialization of this class
 
-    
+  rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr
+    global_plan_pub_;  //!< Publisher for the global plan
+  rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr
+    local_plan_pub_;  //!< Publisher for the local plan
+  rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseArray>::SharedPtr
+    teb_poses_pub_;  //!< Publisher for the trajectory pose sequence
+  rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>::SharedPtr
+    teb_marker_pub_;  //!< Publisher for visualization markers
+  rclcpp_lifecycle::LifecyclePublisher<teb_msgs::msg::FeedbackMsg>::SharedPtr
+    feedback_pub_;  //!< Publisher for the feedback message for analysis and debug purposes
+
+  const TebConfig * cfg_;  //!< Config class that stores and manages all related parameters
+
+  bool initialized_;  //!< Keeps track about the correct initialization of this class
+
 public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW    
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 //! Abbrev. for shared instances of the TebVisualization
@@ -262,11 +438,6 @@ typedef std::shared_ptr<TebVisualization> TebVisualizationPtr;
 //! Abbrev. for shared instances of the TebVisualization (read-only)
 typedef std::shared_ptr<const TebVisualization> TebVisualizationConstPtr;
 
-
-} // namespace teb_local_planner
-
-
-// Include template method implementations / definitions
-#include "teb_local_planner/visualization.hpp"
+}  // namespace teb_local_planner
 
 #endif /* VISUALIZATION_H_ */

@@ -36,21 +36,18 @@
  * Author: Christoph Rösmann
  *********************************************************************/
 
-#include "teb_local_planner/visualization.h"
-
 #include <boost/utility.hpp>
 #include <iterator>
 
+#include "teb_local_planner/visualization.h"
+
 namespace teb_local_planner
 {
- 
-
 template <typename GraphType>
-void TebVisualization::publishGraph(const GraphType& graph, const std::string& ns_prefix)
-{	 
-  if ( printErrorWhenNotInitialized() )
-    return;
-  
+void TebVisualization::publishGraph(const GraphType & graph, const std::string & ns_prefix)
+{
+  if (printErrorWhenNotInitialized()) return;
+
   typedef typename boost::graph_traits<GraphType>::vertex_iterator GraphVertexIterator;
   typedef typename boost::graph_traits<GraphType>::edge_iterator GraphEdgeIterator;
 
@@ -68,35 +65,34 @@ void TebVisualization::publishGraph(const GraphType& graph, const std::string& n
   marker.type = visualization_msgs::msg::Marker::LINE_LIST;
 #endif
   marker.action = visualization_msgs::msg::Marker::ADD;
-  
+
   GraphEdgeIterator it_edge, end_edges;
-  for (boost::tie(it_edge,end_edges) = boost::edges(graph); it_edge!=end_edges; ++it_edge)
-  {
+  for (boost::tie(it_edge, end_edges) = boost::edges(graph); it_edge != end_edges; ++it_edge) {
 #ifdef TRIANGLE
     geometry_msgs::msg::Point point_start1;
-    point_start1.x = graph[boost::source(*it_edge,graph)].pos[0]+0.05;
-    point_start1.y = graph[boost::source(*it_edge,graph)].pos[1]-0.05;
+    point_start1.x = graph[boost::source(*it_edge, graph)].pos[0] + 0.05;
+    point_start1.y = graph[boost::source(*it_edge, graph)].pos[1] - 0.05;
     point_start1.z = 0;
     marker.points.push_back(point_start1);
     geometry_msgs::msg::Point point_start2;
-    point_start2.x = graph[boost::source(*it_edge,graph)].pos[0]-0.05;
-    point_start2.y = graph[boost::source(*it_edge,graph)].pos[1]+0.05;
+    point_start2.x = graph[boost::source(*it_edge, graph)].pos[0] - 0.05;
+    point_start2.y = graph[boost::source(*it_edge, graph)].pos[1] + 0.05;
     point_start2.z = 0;
     marker.points.push_back(point_start2);
 
 #else
     geometry_msgs::msg::Point point_start;
-    point_start.x = graph[boost::source(*it_edge,graph)].pos[0];
-    point_start.y = graph[boost::source(*it_edge,graph)].pos[1];
+    point_start.x = graph[boost::source(*it_edge, graph)].pos[0];
+    point_start.y = graph[boost::source(*it_edge, graph)].pos[1];
     point_start.z = 0;
     marker.points.push_back(point_start);
 #endif
     geometry_msgs::msg::Point point_end;
-    point_end.x = graph[boost::target(*it_edge,graph)].pos[0];
-    point_end.y = graph[boost::target(*it_edge,graph)].pos[1];
+    point_end.x = graph[boost::target(*it_edge, graph)].pos[0];
+    point_end.y = graph[boost::target(*it_edge, graph)].pos[1];
     point_end.z = 0;
     marker.points.push_back(point_end);
-    
+
     // add color
     std_msgs::msg::ColorRGBA color;
     color.a = 1.0;
@@ -109,12 +105,12 @@ void TebVisualization::publishGraph(const GraphType& graph, const std::string& n
     marker.colors.push_back(color);
 #endif
   }
-  
+
 #ifdef TRIANGLE
   marker.scale.x = 1;
   marker.scale.y = 1;
   marker.scale.z = 1;
-#else 
+#else
   marker.scale.x = 0.01;
 #endif
   marker.color.a = 1.0;
@@ -123,8 +119,8 @@ void TebVisualization::publishGraph(const GraphType& graph, const std::string& n
   marker.color.b = 0.0;
 
   // Now publish edge markers
-  teb_marker_pub_->publish( marker );
-  
+  teb_marker_pub_->publish(marker);
+
   // Visualize vertices
   marker.header.frame_id = cfg_->map_frame;
   marker.header.stamp = nh_->now();
@@ -132,27 +128,23 @@ void TebVisualization::publishGraph(const GraphType& graph, const std::string& n
   marker.id = 0;
   marker.type = visualization_msgs::msg::Marker::POINTS;
   marker.action = visualization_msgs::msg::Marker::ADD;
-  
+
   GraphVertexIterator it_vert, end_vert;
-  for (boost::tie(it_vert,end_vert) = boost::vertices(graph); it_vert!=end_vert; ++it_vert)
-  {
+  for (boost::tie(it_vert, end_vert) = boost::vertices(graph); it_vert != end_vert; ++it_vert) {
     geometry_msgs::msg::Point point;
     point.x = graph[*it_vert].pos[0];
     point.y = graph[*it_vert].pos[1];
     point.z = 0;
     marker.points.push_back(point);
     // add color
-    
+
     std_msgs::msg::ColorRGBA color;
     color.a = 1.0;
-    if (it_vert==end_vert-1)
-    {
+    if (it_vert == end_vert - 1) {
       color.r = 1;
       color.g = 0;
-      color.b = 0;		
-    }
-    else
-    {
+      color.b = 0;
+    } else {
       color.r = 0;
       color.g = 1;
       color.b = 0;
@@ -160,12 +152,11 @@ void TebVisualization::publishGraph(const GraphType& graph, const std::string& n
     marker.colors.push_back(color);
   }
   // set first color (start vertix) to blue
-  if (!marker.colors.empty())
-  {
+  if (!marker.colors.empty()) {
     marker.colors.front().b = 1;
     marker.colors.front().g = 0;
   }
-  
+
   marker.scale.x = 0.1;
   marker.scale.y = 0.1;
   marker.color.a = 1.0;
@@ -174,15 +165,14 @@ void TebVisualization::publishGraph(const GraphType& graph, const std::string& n
   marker.color.b = 0.0;
 
   // Now publish vertex markers
-  teb_marker_pub_->publish( marker );
+  teb_marker_pub_->publish(marker);
 }
-  
+
 template <typename BidirIter>
-void TebVisualization::publishPathContainer(BidirIter first, BidirIter last, const std::string& ns)
+void TebVisualization::publishPathContainer(BidirIter first, BidirIter last, const std::string & ns)
 {
-  if ( printErrorWhenNotInitialized() )
-    return;
-  
+  if (printErrorWhenNotInitialized()) return;
+
   visualization_msgs::msg::Marker marker;
   marker.header.frame_id = cfg_->map_frame;
   marker.header.stamp = nh_->now();
@@ -191,15 +181,15 @@ void TebVisualization::publishPathContainer(BidirIter first, BidirIter last, con
   marker.type = visualization_msgs::msg::Marker::LINE_LIST;
   marker.action = visualization_msgs::msg::Marker::ADD;
 
-  typedef typename std::iterator_traits<BidirIter>::value_type PathType; // Get type of the path (point container)
-  
+  typedef typename std::iterator_traits<BidirIter>::value_type
+    PathType;  // Get type of the path (point container)
+
   // Iterate through path container
-  while(first != last)
-  {	  
+  while (first != last) {
     // iterate single path points
     typename PathType::const_iterator it_point, end_point;
-    for (it_point = first->begin(), end_point = std::prev(first->end()); it_point != end_point; ++it_point)
-    {
+    for (it_point = first->begin(), end_point = std::prev(first->end()); it_point != end_point;
+         ++it_point) {
       geometry_msgs::msg::Point point_start;
       point_start.x = get_const_reference(*it_point).x();
       point_start.y = get_const_reference(*it_point).y();
@@ -220,8 +210,7 @@ void TebVisualization::publishPathContainer(BidirIter first, BidirIter last, con
   marker.color.g = 1.0;
   marker.color.b = 0.0;
 
-  teb_marker_pub_->publish( marker );
+  teb_marker_pub_->publish(marker);
 }
-  
-  
-} // namespace teb_local_planner
+
+}  // namespace teb_local_planner

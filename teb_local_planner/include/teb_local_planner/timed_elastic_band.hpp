@@ -179,6 +179,7 @@ bool TimedElasticBand::initTrajectoryToGoal(
       sizePoses() - 1, true);  // GoalConf is a fixed constraint during optimization
   } else                       // size!=0
   {
+    //TODO: use the node logger instead.
     RCLCPP_DEBUG(
       rclcpp::get_logger("teb_local_planner"),
       "Cannot init TEB between given configuration and goal, because TEB vectors are not empty or "

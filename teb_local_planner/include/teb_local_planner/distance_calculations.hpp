@@ -290,7 +290,7 @@ inline double calc_distance_line_to_line_3d(
   double sc, tc;
 
   // compute the line parameters of the two closest points
-  if (D < SMALL_NUM) {  // the lines are almost parallel
+  if (D < small_number) {  // the lines are almost parallel
     sc = 0.0;
     tc = (b > c ? d / b : e / c);  // use the largest denominator
   } else {
@@ -323,7 +323,7 @@ inline double calc_distance_segment_to_segment3D(
   double tc, tN, tD = D;     // tc = tN / tD, default tD = D >= 0
 
   // compute the line parameters of the two closest points
-  if (D < SMALL_NUM) {  // the lines are almost parallel
+  if (D < small_number) {  // the lines are almost parallel
     sN = 0.0;           // force using point P0 on segment S1
     sD = 1.0;           // to prevent possible division by 0.0 later
     tN = e;
@@ -366,8 +366,8 @@ inline double calc_distance_segment_to_segment3D(
     }
   }
   // finally do the division to get sc and tc
-  sc = (abs(sN) < SMALL_NUM ? 0.0 : sN / sD);
-  tc = (abs(tN) < SMALL_NUM ? 0.0 : tN / tD);
+  sc = (abs(sN) < small_number? 0.0 : sN / sD);
+  tc = (abs(tN) < small_number? 0.0 : tN / tD);
 
   // get the difference of the two closest points
   Eigen::Vector3d dP = w + (sc * u) - (tc * v);  // =  S1(sc) - S2(tc)
@@ -382,7 +382,7 @@ inline double calc_closest_point_to_approach_time(
   VectorType dv = vel1 - vel2;
 
   double dv2 = dv.squaredNorm();  // dot(v,v)
-  if (dv2 < SMALL_NUM)            // the  tracks are almost parallel
+  if (dv2 < small_number)            // the  tracks are almost parallel
     return 0.0;                   // any time is ok.  Use time 0.
 
   VectorType w0 = x1 - x2;

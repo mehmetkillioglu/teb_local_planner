@@ -48,8 +48,7 @@
 
 namespace teb_local_planner
 {
-// TODO: fix this macro
-#define SMALL_NUM 0.00000001
+const double small_number = 1.0e-8;
 
 //! Symbols for left/none/right rotations
 enum class RotType { left, none, right };

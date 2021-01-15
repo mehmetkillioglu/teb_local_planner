@@ -43,6 +43,8 @@
 #ifndef EDGE_OBSTACLE_H_
 #define EDGE_OBSTACLE_H_
 
+#include <sstream>
+
 #include "teb_local_planner/g2o_types/base_teb_edges.hpp"
 #include "teb_local_planner/g2o_types/penalties.hpp"
 #include "teb_local_planner/g2o_types/vertex_pose.hpp"
@@ -78,7 +80,7 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(
+    teb_check_true(
       cfg_ && _measurement && robot_model_,
       "You must call setTebConfig(), setObstacle() and setRobotModel() on EdgeObstacle()");
     const VertexPose * bandpt = static_cast<const VertexPose *>(_vertices[0]);
@@ -100,8 +102,8 @@ public:
         std::pow(_error[0] / cfg_->obstacles.min_obstacle_dist, cfg_->optim.obstacle_cost_exponent);
     }
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]), "EdgeObstacle::computeError() _error[0]=%f\n", _error[0]);
+    teb_check_true(
+      std::isfinite(_error[0]), "EdgeObstacle::computeError() _error[0]=", _error[0]);
   }
 
 #ifdef USE_ANALYTIC_JACOBI
@@ -209,7 +211,10 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(
+    // TEB_ASSERT_MSG(
+    //   cfg_ && _measurement && robot_model_,
+    //   "You must call setTebConfig(), setObstacle() and setRobotModel() on EdgeInflatedObstacle()");
+    teb_check_true(
       cfg_ && _measurement && robot_model_,
       "You must call setTebConfig(), setObstacle() and setRobotModel() on EdgeInflatedObstacle()");
     const VertexPose * bandpt = static_cast<const VertexPose *>(_vertices[0]);
@@ -235,9 +240,8 @@ public:
     // Additional linear inflation cost
     _error[1] = penaltyBoundFromBelow(dist, cfg_->obstacles.inflation_dist, 0.0);
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]) && std::isfinite(_error[1]),
-      "EdgeInflatedObstacle::computeError() _error[0]=%f, _error[1]=%f\n", _error[0], _error[1]);
+    teb_check_true(std::isfinite(_error[0]) , "EdgeInflatedObstacle::computeError() _error[0]=" , _error[0]);
+    teb_check_true(std::isfinite(_error[1]) , "EdgeInflatedObstacle::computeError() _error[1]=" , _error[1]);
   }
 
   /**

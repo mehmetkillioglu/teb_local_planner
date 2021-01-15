@@ -88,7 +88,7 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeVelocity()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeVelocity()");
     const VertexPose * conf1 = static_cast<const VertexPose *>(_vertices[0]);
     const VertexPose * conf2 = static_cast<const VertexPose *>(_vertices[1]);
     const VertexTimeDiff * deltaT = static_cast<const VertexTimeDiff *>(_vertices[2]);
@@ -115,9 +115,8 @@ public:
     _error[1] =
       penaltyBoundToInterval(omega, cfg_->robot.max_vel_theta, cfg_->optim.penalty_epsilon);
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]), "EdgeVelocity::computeError() _error[0]=%f _error[1]=%f\n",
-      _error[0], _error[1]);
+    teb_check_true(std::isfinite(_error[0]), "EdgeVelocity::computeError() _error[0]=", _error[0]);
+    teb_check_true(std::isfinite(_error[1]), "EdgeVelocity::computeError() _error[0]=", _error[1]);
   }
 
 #ifdef USE_ANALYTIC_JACOBI
@@ -231,7 +230,7 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeVelocityHolonomic()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeVelocityHolonomic()");
     const VertexPose * conf1 = static_cast<const VertexPose *>(_vertices[0]);
     const VertexPose * conf2 = static_cast<const VertexPose *>(_vertices[1]);
     const VertexTimeDiff * deltaT = static_cast<const VertexTimeDiff *>(_vertices[2]);
@@ -256,10 +255,12 @@ public:
     _error[2] =
       penaltyBoundToInterval(omega, cfg_->robot.max_vel_theta, cfg_->optim.penalty_epsilon);
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]) && std::isfinite(_error[1]) && std::isfinite(_error[2]),
-      "EdgeVelocityHolonomic::computeError() _error[0]=%f _error[1]=%f _error[2]=%f\n", _error[0],
-      _error[1], _error[2]);
+    teb_check_true(
+      std::isfinite(_error[0]), "EdgeVelocityHolonomic::computeError() _error[0]=", _error[0]);
+    teb_check_true(
+      std::isfinite(_error[1]), "EdgeVelocityHolonomic::computeError() _error[1]=", _error[1]);
+    teb_check_true(
+      std::isfinite(_error[2]), "EdgeVelocityHolonomic::computeError() _error[2]=", _error[2]);
   }
 
 public:

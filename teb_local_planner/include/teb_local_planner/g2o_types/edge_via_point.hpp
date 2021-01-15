@@ -74,13 +74,13 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(
+    teb_check_true(
       cfg_ && _measurement, "You must call setTebConfig(), setViaPoint() on EdgeViaPoint()");
     const VertexPose * bandpt = static_cast<const VertexPose *>(_vertices[0]);
 
     _error[0] = (bandpt->position() - *_measurement).norm();
 
-    TEB_ASSERT_MSG(
+    teb_check_true(
       std::isfinite(_error[0]), "EdgeViaPoint::computeError() _error[0]=%f\n", _error[0]);
   }
 

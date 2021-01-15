@@ -39,6 +39,7 @@
 #include <limits>
 
 #include "teb_local_planner/homotopy_class_planner.hpp"
+#include "teb_local_planner/misc.hpp"
 
 namespace teb_local_planner
 {
@@ -96,7 +97,7 @@ bool HomotopyClassPlanner::plan(
   const std::vector<geometry_msgs::msg::PoseStamped> & initial_plan,
   const geometry_msgs::msg::Twist * start_vel, bool free_goal_vel)
 {
-  TEB_ASSERT_MSG(initialized_, "Call initialize() first.");
+  teb_check_true(initialized_, "Call initialize() first.");
 
   // store initial plan for further initializations (must be valid for the lifetime of this object or clearPlanner() is called!)
   initial_plan_ = &initial_plan;
@@ -120,7 +121,7 @@ bool HomotopyClassPlanner::plan(
   const PoseSE2 & start, const PoseSE2 & goal, const geometry_msgs::msg::Twist * start_vel,
   bool free_goal_vel)
 {
-  TEB_ASSERT_MSG(initialized_, "Call initialize() first.");
+  teb_check_true(initialized_, "Call initialize() first.");
 
   // Update old TEBs with new start, goal and velocity
   updateAllTEBs(&start, &goal, start_vel);

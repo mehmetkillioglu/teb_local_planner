@@ -43,6 +43,7 @@
 #include <map>
 #include <memory>
 
+#include "teb_local_planner/misc.hpp"
 #include "teb_local_planner/optimal_planner.hpp"
 
 namespace teb_local_planner
@@ -257,7 +258,7 @@ bool TebOptimalPlanner::plan(
   const std::vector<geometry_msgs::msg::PoseStamped> & initial_plan,
   const geometry_msgs::msg::Twist * start_vel, bool free_goal_vel)
 {
-  TEB_ASSERT_MSG(initialized_, "Call initialize() first.");
+  teb_check_true(initialized_, "Call initialize() first.");
   if (!teb_.isInit()) {
     teb_.initTrajectoryToGoal(
       initial_plan, cfg_->robot.max_vel_x, cfg_->robot.max_vel_theta,
@@ -309,7 +310,7 @@ bool TebOptimalPlanner::plan(
   const PoseSE2 & start, const PoseSE2 & goal, const geometry_msgs::msg::Twist * start_vel,
   bool free_goal_vel)
 {
-  TEB_ASSERT_MSG(initialized_, "Call initialize() first.");
+  teb_check_true(initialized_, "Call initialize() first.");
   if (!teb_.isInit()) {
     // init trajectory
     teb_.initTrajectoryToGoal(

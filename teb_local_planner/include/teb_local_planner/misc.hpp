@@ -35,15 +35,14 @@
  *
  * Author: Christoph Rösmann
  *********************************************************************/
-// TODO: fix error check functions.
-// use check_true from rcpputils
 #ifndef MISC_H
 #define MISC_H
 
 #include <Eigen/Core>
 #include <builtin_interfaces/msg/duration.hpp>
-#include <exception>
+#include <nav2_core/exceptions.hpp>
 #include <rclcpp/logging.hpp>
+#include <sstream>
 #include <type_traits>
 
 namespace teb_local_planner
@@ -167,50 +166,38 @@ inline builtin_interfaces::msg::Duration durationFromSec(double t_sec)
   return duration;
 }
 
-struct TebAssertionFailureException : public std::runtime_error
+// struct TebAssertionFailureException : public std::runtime_error
+// {
+//   TebAssertionFailureException(const std::string & msg) : std::runtime_error(msg)
+//   {
+//     RCLCPP_ERROR(rclcpp::get_logger("teb_local_planner"), msg.c_str());
+//   }
+// };
+
+struct TebAssertionFailureException : public nav2_core::PlannerException
 {
-  TebAssertionFailureException(const std::string & msg) : std::runtime_error(msg)
-  {
-    RCLCPP_ERROR(rclcpp::get_logger("teb_local_planner"), msg.c_str());
-  }
+  TebAssertionFailureException(const std::string & msg) : nav2_core::PlannerException(msg) {}
 };
 
-//Fix this. buffer overflow might happen
-//this macro seems not been used.
-#define TEB_ASSERT_MSG_IMPL(...)             \
-  {                                          \
-    char arg_string[1024];                   \
-    std::sprintf(arg_string, __VA_ARGS__);   \
-    const std::string msg(arg_string);       \
-    throw TebAssertionFailureException(msg); \
-  }
-
-//fix this, buffer overflow might happen
-template <
-  typename T, typename... ARGS, typename std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr>
-void teb_assert_msg_impl(const T expression, ARGS... args)
+inline void teb_check_true(bool expr, std::string msg)
 {
-  if (expression == 0) {
-    char arg_string[1024];
-    std::sprintf(arg_string, args..., "");
-    const std::string msg(arg_string);
+  if (!expr) {
+    RCLCPP_ERROR(rclcpp::get_logger("teb_local_planner"), msg.c_str());
     throw TebAssertionFailureException(msg);
   }
+  return;
 }
 
-template <
-  typename T, typename... ARGS, typename std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
-void teb_assert_msg_impl(const T expression, ARGS... args)
+inline void teb_check_true(bool expr, std::string msg, double value)
 {
-  if (expression == nullptr) {
-    char arg_string[1024];
-    std::sprintf(arg_string, args..., "");
-    const std::string msg(arg_string);
-    throw TebAssertionFailureException(msg);
+  if (!expr) {
+    std::ostringstream oss;
+    oss << msg << value << "\n";
+    RCLCPP_ERROR(rclcpp::get_logger("teb_local_planner"), oss.str().c_str());
+    throw TebAssertionFailureException(oss.str());
   }
+  return;
 }
-
-#define TEB_ASSERT_MSG(expression, ...) teb_assert_msg_impl(expression, __VA_ARGS__)
 
 }  // namespace teb_local_planner
 

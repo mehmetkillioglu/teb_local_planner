@@ -73,13 +73,15 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeShortestPath()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeShortestPath()");
+
     const VertexPose * pose1 = static_cast<const VertexPose *>(_vertices[0]);
     const VertexPose * pose2 = static_cast<const VertexPose *>(_vertices[1]);
+
     _error[0] = (pose2->position() - pose1->position()).norm();
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]), "EdgeShortestPath::computeError() _error[0]=%f\n", _error[0]);
+    teb_check_true(
+      std::isfinite(_error[0]), "EdgeShortestPath::computeError() _error[0]=", _error[0]);
   }
 
 public:

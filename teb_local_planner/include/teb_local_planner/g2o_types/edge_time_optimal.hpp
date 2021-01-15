@@ -49,6 +49,7 @@
 //#include <base_local_planner/BaseLocalPlannerConfig.h>
 
 #include <Eigen/Core>
+#include <sstream>
 
 #include "teb_local_planner/g2o_types/base_teb_edges.hpp"
 #include "teb_local_planner/g2o_types/penalties.hpp"
@@ -82,13 +83,13 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeTimeOptimal()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeTimeOptimal()");
     const VertexTimeDiff * timediff = static_cast<const VertexTimeDiff *>(_vertices[0]);
 
     _error[0] = timediff->dt();
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]), "EdgeTimeOptimal::computeError() _error[0]=%f\n", _error[0]);
+    teb_check_true(
+      std::isfinite(_error[0]), "EdgeTimeOptimal::computeError() _error[0]=", _error[0]);
   }
 
 #ifdef USE_ANALYTIC_JACOBI
@@ -97,7 +98,7 @@ public:
    */
   void linearizeOplus()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeTimeOptimal()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeTimeOptimal()");
     _jacobianOplusXi(0, 0) = 1;
   }
 #endif

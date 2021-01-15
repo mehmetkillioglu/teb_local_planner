@@ -87,9 +87,10 @@ public:
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(
+    teb_check_true(
       cfg_ && _measurement && robot_model_,
       "You must call setTebConfig(), setObstacle() and setRobotModel() on EdgeDynamicObstacle()");
+
     const VertexPose * bandpt = static_cast<const VertexPose *>(_vertices[0]);
 
     double dist = robot_model_->estimateSpatioTemporalDistance(bandpt->pose(), _measurement, t_);
@@ -98,8 +99,8 @@ public:
       penaltyBoundFromBelow(dist, cfg_->obstacles.min_obstacle_dist, cfg_->optim.penalty_epsilon);
     _error[1] = penaltyBoundFromBelow(dist, cfg_->obstacles.dynamic_obstacle_inflation_dist, 0.0);
 
-    TEB_ASSERT_MSG(
-      std::isfinite(_error[0]), "EdgeDynamicObstacle::computeError() _error[0]=%f\n", _error[0]);
+    teb_check_true(
+      std::isfinite(_error[0]), "EdgeDynamicObstacle::computeError() _error[0]=", _error[0]);
   }
 
   /**

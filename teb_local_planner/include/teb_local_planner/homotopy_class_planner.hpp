@@ -215,12 +215,18 @@ public:
    * If no trajectory is available, the pointer will be empty.
    * If only a single trajectory is available, return it.
    * Otherwise return the best one, but call selectBestTeb() before to perform the actual selection (part of the plan() methods).
-   * @return Shared pointer to the best TebOptimalPlanner that contains the selected trajectory (TimedElasticBand).
+   * @return Shared pointer to the best TebOptimalPlanner that contains the selected trajectory (TimedElasticBand)
+   * when there is none, a null shared_ptr will be return.
    */
-  //TODO: fix the following ugly code.
   TebOptimalPlannerPtr bestTeb() const
   {
-    return tebs_.empty() ? TebOptimalPlannerPtr() : tebs_.size() == 1 ? tebs_.front() : best_teb_;
+    if (tebs_.empty()) {  //no teb
+      return TebOptimalPlannerPtr(nullptr);
+    } else if (1 == tebs_.size()) {
+      return tebs_.front();
+    } else {
+      return best_teb_;
+    }
   }
 
   /**

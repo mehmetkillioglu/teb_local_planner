@@ -35,18 +35,16 @@
  *
  * Author: Christoph Rösmann
  *********************************************************************/
-
+// TODO: fix error check functions.
+// use check_true from rcpputils
 #ifndef MISC_H
 #define MISC_H
 
-#include <builtin_interfaces/msg/duration.hpp>
-
 #include <Eigen/Core>
-
+#include <builtin_interfaces/msg/duration.hpp>
 #include <exception>
-#include <type_traits>
-
 #include <rclcpp/logging.hpp>
+#include <type_traits>
 
 namespace teb_local_planner
 {
@@ -73,33 +71,29 @@ inline bool is_close(double a, double b, double epsilon = 1e-4)
  * @param angles vector containing all angles
  * @return average / mean angle, that is normalized to [-pi, pi]
  */
-inline double average_angles(const std::vector<double>& angles)
+inline double average_angles(const std::vector<double> & angles)
 {
-  double x=0, y=0;
-  for (std::vector<double>::const_iterator it = angles.begin(); it!=angles.end(); ++it)
-  {
-      x += cos(*it);
-      y += sin(*it);
+  double x = 0, y = 0;
+  for (std::vector<double>::const_iterator it = angles.begin(); it != angles.end(); ++it) {
+    x += cos(*it);
+    y += sin(*it);
   }
-  if(x == 0 && y == 0)
-      return 0;
-  else
-      return std::atan2(y, x);
+  if (x == 0 && y == 0) {
+    return 0;
+  } else {
+    return std::atan2(y, x);
+  }
 }
 
 /** @brief Small helper function: check if |a|<|b| */
-inline bool smaller_than_abs(double i, double j) {return std::fabs(i)<std::fabs(j);}
-
+inline bool smaller_than_abs(double i, double j) { return std::fabs(i) < std::fabs(j); }
 
 /**
  * @brief Calculate a fast approximation of a sigmoid function
  * @details The following function is implemented: \f$ x / (1 + |x|) \f$
  * @param x the argument of the function
 */
-inline double fast_sigmoid(double x)
-{
-  return x / (1 + fabs(x));
-}
+inline double fast_sigmoid(double x) { return x / (1 + fabs(x)); }
 
 /**
  * @brief Calculate Euclidean distance between two 2D point datatypes
@@ -108,11 +102,10 @@ inline double fast_sigmoid(double x)
  * @return Euclidean distance: ||point2-point1||
 */
 template <typename P1, typename P2>
-inline double distance_points2d(const P1& point1, const P2& point2)
+inline double distance_points2d(const P1 & point1, const P2 & point2)
 {
-  return std::sqrt( std::pow(point2.x-point1.x,2) + std::pow(point2.y-point1.y,2) );
+  return std::sqrt(std::pow(point2.x - point1.x, 2) + std::pow(point2.y - point1.y, 2));
 }
-
 
 /**
  * @brief Calculate the 2d cross product (returns length of the resulting vector along the z-axis in 3d)
@@ -121,9 +114,9 @@ inline double distance_points2d(const P1& point1, const P2& point2)
  * @return magnitude that would result in the 3D case (along the z-axis)
 */
 template <typename V1, typename V2>
-inline double cross2d(const V1& v1, const V2& v2)
+inline double cross2d(const V1 & v1, const V2 & v2)
 {
-     return v1.x()*v2.y() - v2.x()*v1.y();
+  return v1.x() * v2.y() - v2.x() * v1.y();
 }
 
 /**
@@ -135,8 +128,12 @@ inline double cross2d(const V1& v1, const V2& v2)
  * @tparam T arbitrary type
  * @return  If \c T is a pointer, return const *T (leading to const T&), otherwise const T& with out pointer-to-ref conversion
  */
-template<typename T>
-inline const T& get_const_reference(const T* ptr) {return *ptr;}
+// TODO: fix this.
+template <typename T>
+inline const T & get_const_reference(const T * ptr)
+{
+  return *ptr;
+}
 
 /**
  * @brief Helper function that returns the const reference to a value defined by either its raw pointer type or const reference.
@@ -148,8 +145,12 @@ inline const T& get_const_reference(const T* ptr) {return *ptr;}
  * @tparam T arbitrary type
  * @return  If \c T is a pointer, return const *T (leading to const T&), otherwise const T& with out pointer-to-ref conversion
  */
-template<typename T>
-inline const T& get_const_reference(const T& val, typename std::enable_if_t<!std::is_pointer<T>::value, T>* dummy = nullptr) {return val;}
+template <typename T>
+inline const T & get_const_reference(
+  const T & val, typename std::enable_if_t<!std::is_pointer<T>::value, T> * dummy = nullptr)
+{
+  return val;
+}
 
 inline builtin_interfaces::msg::Duration durationFromSec(double t_sec)
 {
@@ -169,43 +170,49 @@ inline builtin_interfaces::msg::Duration durationFromSec(double t_sec)
 
 struct TebAssertionFailureException : public std::runtime_error
 {
-    TebAssertionFailureException(const std::string &msg)
-        : std::runtime_error(msg)
-    {
-        RCLCPP_ERROR(rclcpp::get_logger("teb_local_planner"), msg.c_str());
-    }
+  TebAssertionFailureException(const std::string & msg) : std::runtime_error(msg)
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("teb_local_planner"), msg.c_str());
+  }
 };
 
-#define TEB_ASSERT_MSG_IMPL(...) \
-    { \
-        char arg_string[1024]; \
-        std::sprintf(arg_string, __VA_ARGS__); \
-        const std::string msg(arg_string); \
-        throw TebAssertionFailureException(msg); \
-    }
+//Fix this. buffer overflow might happen
+//this macro seems not been used.
+#define TEB_ASSERT_MSG_IMPL(...)             \
+  {                                          \
+    char arg_string[1024];                   \
+    std::sprintf(arg_string, __VA_ARGS__);   \
+    const std::string msg(arg_string);       \
+    throw TebAssertionFailureException(msg); \
+  }
 
-template<typename T, typename ...ARGS, typename std::enable_if_t<std::is_arithmetic<T>::value>* = nullptr>
-void teb_assert_msg_impl(const T expression, ARGS ...args) {
-    if(expression == 0) {
-        char arg_string[1024];
-        std::sprintf(arg_string, args..., "");
-        const std::string msg(arg_string);
-        throw TebAssertionFailureException(msg);
-    }
+//fix this, buffer overflow might happen
+template <
+  typename T, typename... ARGS, typename std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr>
+void teb_assert_msg_impl(const T expression, ARGS... args)
+{
+  if (expression == 0) {
+    char arg_string[1024];
+    std::sprintf(arg_string, args..., "");
+    const std::string msg(arg_string);
+    throw TebAssertionFailureException(msg);
+  }
 }
 
-template<typename T, typename ...ARGS, typename std::enable_if_t<std::is_pointer<T>::value>* = nullptr>
-void teb_assert_msg_impl(const T expression, ARGS ...args) {
-    if(expression == nullptr) {
-        char arg_string[1024];
-        std::sprintf(arg_string, args..., "");
-        const std::string msg(arg_string);
-        throw TebAssertionFailureException(msg);
-    }
+template <
+  typename T, typename... ARGS, typename std::enable_if_t<std::is_pointer<T>::value> * = nullptr>
+void teb_assert_msg_impl(const T expression, ARGS... args)
+{
+  if (expression == nullptr) {
+    char arg_string[1024];
+    std::sprintf(arg_string, args..., "");
+    const std::string msg(arg_string);
+    throw TebAssertionFailureException(msg);
+  }
 }
 
 #define TEB_ASSERT_MSG(expression, ...) teb_assert_msg_impl(expression, __VA_ARGS__)
 
-} // namespace teb_local_planner
+}  // namespace teb_local_planner
 
 #endif /* MISC_H */

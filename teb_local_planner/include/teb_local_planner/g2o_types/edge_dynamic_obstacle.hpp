@@ -44,18 +44,17 @@
 #ifndef EDGE_DYNAMICOBSTACLE_H
 #define EDGE_DYNAMICOBSTACLE_H
 
+#include "teb_local_planner/g2o_types/base_teb_edges.hpp"
+#include "teb_local_planner/g2o_types/penalties.hpp"
 #include "teb_local_planner/g2o_types/vertex_pose.hpp"
 #include "teb_local_planner/g2o_types/vertex_timediff.hpp"
-#include "teb_local_planner/g2o_types/penalties.hpp"
-#include "teb_local_planner/g2o_types/base_teb_edges.hpp"
-#include "teb_local_planner/obstacles.hpp"
-#include "teb_local_planner/teb_config.hpp"
-#include "teb_local_planner/robot_footprint_model.hpp"
 #include "teb_local_planner/misc.hpp"
+#include "teb_local_planner/obstacles.hpp"
+#include "teb_local_planner/robot_footprint_model.hpp"
+#include "teb_local_planner/teb_config.hpp"
 
 namespace teb_local_planner
 {
-
 /**
  * @class EdgeDynamicObstacle
  * @brief Edge defining the cost function for keeping a distance from dynamic (moving) obstacles.
@@ -69,59 +68,51 @@ namespace teb_local_planner
  * @remarks Do not forget to call setTebConfig(), setVertexIdx() and
  * @warning Experimental
  */
-class EdgeDynamicObstacle : public BaseTebUnaryEdge<2, const Obstacle*, VertexPose>
+class EdgeDynamicObstacle : public BaseTebUnaryEdge<2, const Obstacle *, VertexPose>
 {
 public:
-
   /**
    * @brief Construct edge.
    */
-  EdgeDynamicObstacle() : t_(0)
-  {
-  }
+  EdgeDynamicObstacle() : t_(0) {}
 
   /**
    * @brief Construct edge and specify the time for its associated pose (neccessary for computeError).
    * @param t_ Estimated time until current pose is reached
    */
-  EdgeDynamicObstacle(double t) : t_(t)
-  {
-  }
+  EdgeDynamicObstacle(double t) : t_(t) {}
 
   /**
    * @brief Actual cost function
    */
   void computeError()
   {
-    TEB_ASSERT_MSG(cfg_ && _measurement && robot_model_, "You must call setTebConfig(), setObstacle() and setRobotModel() on EdgeDynamicObstacle()");
-    const VertexPose* bandpt = static_cast<const VertexPose*>(_vertices[0]);
+    TEB_ASSERT_MSG(
+      cfg_ && _measurement && robot_model_,
+      "You must call setTebConfig(), setObstacle() and setRobotModel() on EdgeDynamicObstacle()");
+    const VertexPose * bandpt = static_cast<const VertexPose *>(_vertices[0]);
 
     double dist = robot_model_->estimateSpatioTemporalDistance(bandpt->pose(), _measurement, t_);
 
-    _error[0] = penaltyBoundFromBelow(dist, cfg_->obstacles.min_obstacle_dist, cfg_->optim.penalty_epsilon);
+    _error[0] =
+      penaltyBoundFromBelow(dist, cfg_->obstacles.min_obstacle_dist, cfg_->optim.penalty_epsilon);
     _error[1] = penaltyBoundFromBelow(dist, cfg_->obstacles.dynamic_obstacle_inflation_dist, 0.0);
 
-    TEB_ASSERT_MSG(std::isfinite(_error[0]), "EdgeDynamicObstacle::computeError() _error[0]=%f\n",_error[0]);
+    TEB_ASSERT_MSG(
+      std::isfinite(_error[0]), "EdgeDynamicObstacle::computeError() _error[0]=%f\n", _error[0]);
   }
-
 
   /**
    * @brief Set Obstacle for the underlying cost function
    * @param obstacle Const pointer to an Obstacle or derived Obstacle
    */
-  void setObstacle(const Obstacle* obstacle)
-  {
-    _measurement = obstacle;
-  }
+  void setObstacle(const Obstacle * obstacle) { _measurement = obstacle; }
 
   /**
    * @brief Set pointer to the robot model
    * @param robot_model Robot model required for distance calculation
    */
-  void setRobotModel(const BaseRobotFootprintModel* robot_model)
-  {
-    robot_model_ = robot_model;
-  }
+  void setRobotModel(const BaseRobotFootprintModel * robot_model) { robot_model_ = robot_model; }
 
   /**
    * @brief Set all parameters at once
@@ -129,7 +120,8 @@ public:
    * @param robot_model Robot model required for distance calculation
    * @param obstacle 2D position vector containing the position of the obstacle
    */
-  void setParameters(const TebConfig& cfg, const BaseRobotFootprintModel* robot_model, const Obstacle* obstacle)
+  void setParameters(
+    const TebConfig & cfg, const BaseRobotFootprintModel * robot_model, const Obstacle * obstacle)
   {
     cfg_ = &cfg;
     robot_model_ = robot_model;
@@ -137,18 +129,13 @@ public:
   }
 
 protected:
-
-  const BaseRobotFootprintModel* robot_model_; //!< Store pointer to robot_model
-  double t_; //!< Estimated time until current pose is reached
+  const BaseRobotFootprintModel * robot_model_;  //!< Store pointer to robot_model
+  double t_;                                     //!< Estimated time until current pose is reached
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
 };
 
-
-
-
-} // end namespace
+}  // namespace teb_local_planner
 
 #endif

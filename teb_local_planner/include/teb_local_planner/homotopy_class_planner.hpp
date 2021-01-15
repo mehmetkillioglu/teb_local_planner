@@ -476,8 +476,7 @@ public:
    * @param h2 second h-signature
    * @return \c true if both h-signatures are similar, false otherwise.
    */
-  //TODO: remove unnecessary inline keyword
-  inline static bool isHSignatureSimilar(
+  static bool isHSignatureSimilar(
     const std::complex<long double> & h1, const std::complex<long double> & h2, double threshold)
   {
     double diff_real = std::abs(h2.real() - h1.real());

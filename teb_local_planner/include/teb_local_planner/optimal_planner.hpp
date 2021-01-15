@@ -466,7 +466,7 @@ public:
    * @param[out] vy strafing velocity which can be nonzero for holonomic robots
    * @param[out] omega rotational velocity
    */
-  inline void extractVelocity(
+  void extractVelocity(
     const PoseSE2 & pose1, const PoseSE2 & pose2, double dt, double & vx, double & vy,
     double & omega) const;
 

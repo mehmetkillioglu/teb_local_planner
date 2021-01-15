@@ -49,11 +49,11 @@
 #include <iterator>
 #include <rclcpp/rclcpp.hpp>
 
-#include "teb_local_planner/obstacles.h"
+#include "teb_local_planner/obstacles.hpp"
 
 // G2O Types
-#include "teb_local_planner/g2o_types/vertex_pose.h"
-#include "teb_local_planner/g2o_types/vertex_timediff.h"
+#include "teb_local_planner/g2o_types/vertex_pose.hpp"
+#include "teb_local_planner/g2o_types/vertex_timediff.hpp"
 
 namespace teb_local_planner
 {

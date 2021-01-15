@@ -32,7 +32,7 @@
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * Notes:
  * The following class is derived from a class defined by the
  * g2o-framework. g2o is licensed under the terms of the BSD License.
@@ -40,82 +40,52 @@
  *
  * Author: Christoph Rösmann
  *********************************************************************/
-#ifndef EDGE_VIA_POINT_H_
-#define EDGE_VIA_POINT_H_
 
-#include "teb_local_planner/g2o_types/vertex_pose.h"
-#include "teb_local_planner/g2o_types/base_teb_edges.h"
-#include "teb_local_planner/misc.h"
+#ifndef EDGE_SHORTEST_PATH_H_
+#define EDGE_SHORTEST_PATH_H_
 
-#include "g2o/core/base_unary_edge.h"
+#include <float.h>
 
+#include <Eigen/Core>
+
+#include "teb_local_planner/g2o_types/base_teb_edges.hpp"
+#include "teb_local_planner/g2o_types/vertex_pose.hpp"
+#include "teb_local_planner/misc.hpp"
 
 namespace teb_local_planner
 {
-
 /**
- * @class EdgeViaPoint
- * @brief Edge defining the cost function for pushing a configuration towards a via point
- * 
- * The edge depends on a single vertex \f$ \mathbf{s}_i \f$ and minimizes: \n
- * \f$ \min  dist2point \cdot weight \f$. \n
- * \e dist2point denotes the distance to the via point. \n
- * \e weight can be set using setInformation(). \n
- * @see TebOptimalPlanner::AddEdgesViaPoints
- * @remarks Do not forget to call setTebConfig() and setViaPoint()
- */     
-class EdgeViaPoint : public BaseTebUnaryEdge<1, const Eigen::Vector2d*, VertexPose>
+ * @class EdgeShortestPath
+ * @brief Edge defining the cost function for minimizing the Euclidean distance between two consectuive poses.
+ *
+ * @see TebOptimalPlanner::AddEdgesShortestPath
+ */
+class EdgeShortestPath : public BaseTebBinaryEdge<1, double, VertexPose, VertexPose>
 {
 public:
-    
   /**
    * @brief Construct edge.
-   */    
-  EdgeViaPoint() 
-  {
-    _measurement = NULL;
-  }
- 
+   */
+  EdgeShortestPath() { this->setMeasurement(0.); }
+
   /**
    * @brief Actual cost function
-   */    
+   */
   void computeError()
   {
-    TEB_ASSERT_MSG(cfg_ && _measurement, "You must call setTebConfig(), setViaPoint() on EdgeViaPoint()");
-    const VertexPose* bandpt = static_cast<const VertexPose*>(_vertices[0]);
+    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeShortestPath()");
+    const VertexPose * pose1 = static_cast<const VertexPose *>(_vertices[0]);
+    const VertexPose * pose2 = static_cast<const VertexPose *>(_vertices[1]);
+    _error[0] = (pose2->position() - pose1->position()).norm();
 
-    _error[0] = (bandpt->position() - *_measurement).norm();
-
-    TEB_ASSERT_MSG(std::isfinite(_error[0]), "EdgeViaPoint::computeError() _error[0]=%f\n",_error[0]);
+    TEB_ASSERT_MSG(
+      std::isfinite(_error[0]), "EdgeShortestPath::computeError() _error[0]=%f\n", _error[0]);
   }
 
-  /**
-   * @brief Set pointer to associated via point for the underlying cost function 
-   * @param via_point 2D position vector containing the position of the via point
-   */ 
-  void setViaPoint(const Eigen::Vector2d* via_point)
-  {
-    _measurement = via_point;
-  }
-    
-  /**
-   * @brief Set all parameters at once
-   * @param cfg TebConfig class
-   * @param via_point 2D position vector containing the position of the via point
-   */ 
-  void setParameters(const TebConfig& cfg, const Eigen::Vector2d* via_point)
-  {
-    cfg_ = &cfg;
-    _measurement = via_point;
-  }
-  
-public: 	
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
 };
-  
-    
 
-} // end namespace
+}  // namespace teb_local_planner
 
-#endif
+#endif /* EDGE_SHORTEST_PATH_H_ */

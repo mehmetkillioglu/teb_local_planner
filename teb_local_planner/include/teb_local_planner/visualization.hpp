@@ -45,9 +45,9 @@
 // teb stuff
 #include <teb_msgs/msg/feedback_msg.hpp>
 
-#include "teb_local_planner/robot_footprint_model.h"
-#include "teb_local_planner/teb_config.h"
-#include "teb_local_planner/timed_elastic_band.h"
+#include "teb_local_planner/robot_footprint_model.hpp"
+#include "teb_local_planner/teb_config.hpp"
+#include "teb_local_planner/timed_elastic_band.hpp"
 
 // boost
 #include <boost/graph/adjacency_list.hpp>

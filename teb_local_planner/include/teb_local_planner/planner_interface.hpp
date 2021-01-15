@@ -55,8 +55,8 @@
 #include <geometry_msgs/msg/twist_stamped.hpp>
 
 // this package
-#include "teb_local_planner/pose_se2.h"
-#include "teb_local_planner/visualization.h"
+#include "teb_local_planner/pose_se2.hpp"
+#include "teb_local_planner/visualization.hpp"
 
 namespace teb_local_planner
 {

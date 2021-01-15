@@ -46,10 +46,10 @@
 #include <nav2_core/controller.hpp>
 
 // timed-elastic-band related classes
-#include "teb_local_planner/homotopy_class_planner.h"
-#include "teb_local_planner/optimal_planner.h"
-#include "teb_local_planner/recovery_behaviors.h"
-#include "teb_local_planner/visualization.h"
+#include "teb_local_planner/homotopy_class_planner.hpp"
+#include "teb_local_planner/optimal_planner.hpp"
+#include "teb_local_planner/recovery_behaviors.hpp"
+#include "teb_local_planner/visualization.hpp"
 
 // message types
 #include <costmap_converter_msgs/msg/obstacle_msg.hpp>

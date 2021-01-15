@@ -53,15 +53,15 @@
 #include <vector>
 #include <visualization_msgs/msg/marker.hpp>
 
-#include "teb_local_planner/equivalence_relations.h"
-#include "teb_local_planner/graph_search.h"
-#include "teb_local_planner/h_signature.h"
-#include "teb_local_planner/obstacles.h"
-#include "teb_local_planner/optimal_planner.h"
-#include "teb_local_planner/planner_interface.h"
-#include "teb_local_planner/robot_footprint_model.h"
-#include "teb_local_planner/teb_config.h"
-#include "teb_local_planner/visualization.h"
+#include "teb_local_planner/equivalence_relations.hpp"
+#include "teb_local_planner/graph_search.hpp"
+#include "teb_local_planner/h_signature.hpp"
+#include "teb_local_planner/obstacles.hpp"
+#include "teb_local_planner/optimal_planner.hpp"
+#include "teb_local_planner/planner_interface.hpp"
+#include "teb_local_planner/robot_footprint_model.hpp"
+#include "teb_local_planner/teb_config.hpp"
+#include "teb_local_planner/visualization.hpp"
 
 namespace teb_local_planner
 {

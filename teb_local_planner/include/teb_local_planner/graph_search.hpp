@@ -57,9 +57,9 @@
 #include <boost/utility.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 
-#include "teb_local_planner/equivalence_relations.h"
-#include "teb_local_planner/pose_se2.h"
-#include "teb_local_planner/teb_config.h"
+#include "teb_local_planner/equivalence_relations.hpp"
+#include "teb_local_planner/pose_se2.hpp"
+#include "teb_local_planner/teb_config.hpp"
 
 namespace teb_local_planner
 {

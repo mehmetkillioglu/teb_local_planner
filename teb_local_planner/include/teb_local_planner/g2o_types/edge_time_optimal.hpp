@@ -41,48 +41,71 @@
  * Author: Christoph Rösmann
  *********************************************************************/
 
-#ifndef EDGE_SHORTEST_PATH_H_
-#define EDGE_SHORTEST_PATH_H_
+#ifndef EDGE_TIMEOPTIMAL_H_
+#define EDGE_TIMEOPTIMAL_H_
 
 #include <float.h>
 
-#include "teb_local_planner/g2o_types/base_teb_edges.h"
-#include "teb_local_planner/g2o_types/vertex_pose.h"
-#include "teb_local_planner/misc.h"
+//#include <base_local_planner/BaseLocalPlannerConfig.h>
 
 #include <Eigen/Core>
 
-namespace teb_local_planner {
+#include "teb_local_planner/g2o_types/base_teb_edges.hpp"
+#include "teb_local_planner/g2o_types/penalties.hpp"
+#include "teb_local_planner/g2o_types/vertex_timediff.hpp"
+#include "teb_local_planner/misc.hpp"
+#include "teb_local_planner/teb_config.hpp"
 
+namespace teb_local_planner
+{
 /**
- * @class EdgeShortestPath
- * @brief Edge defining the cost function for minimizing the Euclidean distance between two consectuive poses.
+ * @class EdgeTimeOptimal
+ * @brief Edge defining the cost function for minimizing transition time of the trajectory.
  *
- * @see TebOptimalPlanner::AddEdgesShortestPath
+ * The edge depends on a single vertex \f$ \Delta T_i \f$ and minimizes: \n
+ * \f$ \min \Delta T_i^2 \cdot scale \cdot weight \f$. \n
+ * \e scale is determined using the penaltyEquality() function, since we experiences good convergence speeds with it. \n
+ * \e weight can be set using setInformation() (something around 1.0 seems to be fine). \n
+ * @see TebOptimalPlanner::AddEdgesTimeOptimal
+ * @remarks Do not forget to call setTebConfig()
  */
-class EdgeShortestPath : public BaseTebBinaryEdge<1, double, VertexPose, VertexPose> {
+class EdgeTimeOptimal : public BaseTebUnaryEdge<1, double, VertexTimeDiff>
+{
 public:
   /**
    * @brief Construct edge.
    */
-  EdgeShortestPath() { this->setMeasurement(0.); }
+  EdgeTimeOptimal() { this->setMeasurement(0.); }
 
   /**
    * @brief Actual cost function
    */
-  void computeError() {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeShortestPath()");
-    const VertexPose *pose1 = static_cast<const VertexPose*>(_vertices[0]);
-    const VertexPose *pose2 = static_cast<const VertexPose*>(_vertices[1]);
-    _error[0] = (pose2->position() - pose1->position()).norm();
+  void computeError()
+  {
+    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeTimeOptimal()");
+    const VertexTimeDiff * timediff = static_cast<const VertexTimeDiff *>(_vertices[0]);
 
-    TEB_ASSERT_MSG(std::isfinite(_error[0]), "EdgeShortestPath::computeError() _error[0]=%f\n", _error[0]);
+    _error[0] = timediff->dt();
+
+    TEB_ASSERT_MSG(
+      std::isfinite(_error[0]), "EdgeTimeOptimal::computeError() _error[0]=%f\n", _error[0]);
   }
+
+#ifdef USE_ANALYTIC_JACOBI
+  /**
+   * @brief Jacobi matrix of the cost function specified in computeError().
+   */
+  void linearizeOplus()
+  {
+    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeTimeOptimal()");
+    _jacobianOplusXi(0, 0) = 1;
+  }
+#endif
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-} // end namespace
+};  // namespace teb_local_planner
 
-#endif /* EDGE_SHORTEST_PATH_H_ */
+#endif /* EDGE_TIMEOPTIMAL_H_ */

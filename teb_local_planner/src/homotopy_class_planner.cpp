@@ -38,7 +38,7 @@
 
 #include <limits>
 
-#include "teb_local_planner/homotopy_class_planner.h"
+#include "teb_local_planner/homotopy_class_planner.hpp"
 
 namespace teb_local_planner
 {

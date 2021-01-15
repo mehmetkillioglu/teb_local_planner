@@ -36,7 +36,7 @@
  * Author: Christoph Rösmann
  *********************************************************************/
 
-#include "teb_local_planner/teb_local_planner_ros.h"
+#include "teb_local_planner/teb_local_planner_ros.hpp"
 
 //#include <tf_conversions/tf_eigen.h>
 #include <boost/algorithm/string.hpp>

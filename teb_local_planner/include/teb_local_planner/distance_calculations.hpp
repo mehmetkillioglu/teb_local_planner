@@ -40,16 +40,16 @@
 #define DISTANCE_CALCULATIONS_H
 
 #include <Eigen/Core>
-#include "teb_local_planner/misc.h"
+#include "teb_local_planner/misc.hpp"
 
 
 namespace teb_local_planner
 {
-  
+
 //! Abbrev. for a container storing 2d points
 typedef std::vector< Eigen::Vector2d, Eigen::aligned_allocator<Eigen::Vector2d> > Point2dContainer;
 
-  
+
 /**
  * @brief Helper function to obtain the closest point on a line segment w.r.t. a reference point
  * @param point 2D point
@@ -61,18 +61,18 @@ inline Eigen::Vector2d closest_point_on_line_segment_2d(const Eigen::Ref<const E
 {
   Eigen::Vector2d diff = line_end - line_start;
   double sq_norm = diff.squaredNorm();
-  
+
   if (sq_norm == 0)
     return line_start;
 
   double u = ((point.x() - line_start.x()) * diff.x() + (point.y() - line_start.y())*diff.y()) / sq_norm;
-  
+
   if (u <= 0) return line_start;
   else if (u >= 1) return line_end;
-  
+
   return line_start + u*diff;
 }
-  
+
 /**
  * @brief Helper function to calculate the distance between a line segment and a point
  * @param point 2D point
@@ -82,9 +82,9 @@ inline Eigen::Vector2d closest_point_on_line_segment_2d(const Eigen::Ref<const E
  */
 inline double distance_point_to_segment_2d(const Eigen::Ref<const Eigen::Vector2d>& point, const Eigen::Ref<const Eigen::Vector2d>& line_start, const Eigen::Ref<const Eigen::Vector2d>& line_end)
 {
-  return  (point - closest_point_on_line_segment_2d(point, line_start, line_end)).norm(); 
+  return  (point - closest_point_on_line_segment_2d(point, line_start, line_end)).norm();
 }
-  
+
 /**
  * @brief Helper function to check whether two line segments intersects
  * @param line1_start 2D point representing the start of the first line segment
@@ -93,21 +93,21 @@ inline double distance_point_to_segment_2d(const Eigen::Ref<const Eigen::Vector2
  * @param line2_end 2D point representing the end of the second line segment
  * @param[out] intersection [optional] Write intersection point to destination (the value is only written, if both lines intersect, e.g. if the function returns \c true)
  * @return \c true if both line segments intersect
- */  
-inline bool check_line_segments_intersection_2d(const Eigen::Ref<const Eigen::Vector2d>& line1_start, const Eigen::Ref<const Eigen::Vector2d>& line1_end, 
+ */
+inline bool check_line_segments_intersection_2d(const Eigen::Ref<const Eigen::Vector2d>& line1_start, const Eigen::Ref<const Eigen::Vector2d>& line1_end,
                                                 const Eigen::Ref<const Eigen::Vector2d>& line2_start, const Eigen::Ref<const Eigen::Vector2d>& line2_end, Eigen::Vector2d* intersection = NULL)
 {
   // http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
   double s_numer, t_numer, denom, t;
   Eigen::Vector2d line1 = line1_end - line1_start;
   Eigen::Vector2d line2 = line2_end - line2_start;
-  
+
   denom = line1.x() * line2.y() - line2.x() * line1.y();
   if (denom == 0) return false; // Collinear
   bool denomPositive = denom > 0;
 
   Eigen::Vector2d aux = line1_start - line2_start;
-  
+
   s_numer = line1.x() * aux.y() - line1.y() * aux.x();
   if ((s_numer < 0) == denomPositive)  return false; // No collision
 
@@ -115,7 +115,7 @@ inline bool check_line_segments_intersection_2d(const Eigen::Ref<const Eigen::Ve
   if ((t_numer < 0) == denomPositive)  return false; // No collision
 
   if (((s_numer > denom) == denomPositive) || ((t_numer > denom) == denomPositive)) return false; // No collision
-  
+
   // Otherwise collision detected
   t = t_numer / denom;
   if (intersection)
@@ -125,8 +125,8 @@ inline bool check_line_segments_intersection_2d(const Eigen::Ref<const Eigen::Ve
 
   return true;
 }
-  
-  
+
+
 /**
  * @brief Helper function to calculate the smallest distance between two line segments
  * @param line1_start 2D point representing the start of the first line segment
@@ -134,44 +134,44 @@ inline bool check_line_segments_intersection_2d(const Eigen::Ref<const Eigen::Ve
  * @param line2_start 2D point representing the start of the second line segment
  * @param line2_end 2D point representing the end of the second line segment
  * @return smallest distance between both segments
-*/  
-inline double distance_segment_to_segment_2d(const Eigen::Ref<const Eigen::Vector2d>& line1_start, const Eigen::Ref<const Eigen::Vector2d>& line1_end, 
+*/
+inline double distance_segment_to_segment_2d(const Eigen::Ref<const Eigen::Vector2d>& line1_start, const Eigen::Ref<const Eigen::Vector2d>& line1_end,
                                              const Eigen::Ref<const Eigen::Vector2d>& line2_start, const Eigen::Ref<const Eigen::Vector2d>& line2_end)
 {
   // TODO more efficient implementation
-  
+
   // check if segments intersect
   if (check_line_segments_intersection_2d(line1_start, line1_end, line2_start, line2_end))
     return 0;
-  
+
   // check all 4 combinations
   std::array<double,4> distances;
-  
+
   distances[0] = distance_point_to_segment_2d(line1_start, line2_start, line2_end);
   distances[1] = distance_point_to_segment_2d(line1_end, line2_start, line2_end);
   distances[2] = distance_point_to_segment_2d(line2_start, line1_start, line1_end);
   distances[3] = distance_point_to_segment_2d(line2_end, line1_start, line1_end);
-  
+
   return *std::min_element(distances.begin(), distances.end());
 }
-  
-  
+
+
 /**
  * @brief Helper function to calculate the smallest distance between a point and a closed polygon
  * @param point 2D point
  * @param vertices Vertices describing the closed polygon (the first vertex is not repeated at the end)
  * @return smallest distance between point and polygon
-*/    
+*/
 inline double distance_point_to_polygon_2d(const Eigen::Vector2d& point, const Point2dContainer& vertices)
 {
   double dist = HUGE_VAL;
-    
+
   // the polygon is a point
   if (vertices.size() == 1)
   {
     return (point - vertices.front()).norm();
   }
-    
+
   // check each polygon edge
   for (int i=0; i<(int)vertices.size()-1; ++i)
   {
@@ -187,9 +187,9 @@ inline double distance_point_to_polygon_2d(const Eigen::Vector2d& point, const P
     if (new_dist < dist)
       return new_dist;
   }
-  
+
   return dist;
-}  
+}
 
 /**
  * @brief Helper function to calculate the smallest distance between a line segment and a closed polygon
@@ -197,17 +197,17 @@ inline double distance_point_to_polygon_2d(const Eigen::Vector2d& point, const P
  * @param line_end 2D point representing the end of the line segment
  * @param vertices Vertices describing the closed polygon (the first vertex is not repeated at the end)
  * @return smallest distance between point and polygon
-*/    
+*/
 inline double distance_segment_to_polygon_2d(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, const Point2dContainer& vertices)
 {
   double dist = HUGE_VAL;
-    
+
   // the polygon is a point
   if (vertices.size() == 1)
   {
     return distance_point_to_segment_2d(vertices.front(), line_start, line_end);
   }
-    
+
   // check each polygon edge
   for (int i=0; i<(int)vertices.size()-1; ++i)
   {
@@ -223,7 +223,7 @@ inline double distance_segment_to_polygon_2d(const Eigen::Vector2d& line_start, 
     if (new_dist < dist)
       return new_dist;
   }
-  
+
   return dist;
 }
 
@@ -232,17 +232,17 @@ inline double distance_segment_to_polygon_2d(const Eigen::Vector2d& line_start, 
  * @param vertices1 Vertices describing the first closed polygon (the first vertex is not repeated at the end)
  * @param vertices2 Vertices describing the second closed polygon (the first vertex is not repeated at the end)
  * @return smallest distance between point and polygon
-*/    
+*/
 inline double distance_polygon_to_polygon_2d(const Point2dContainer& vertices1, const Point2dContainer& vertices2)
 {
   double dist = HUGE_VAL;
-    
+
   // the polygon1 is a point
   if (vertices1.size() == 1)
   {
     return distance_point_to_polygon_2d(vertices1.front(), vertices2);
   }
-    
+
   // check each edge of polygon1
   for (int i=0; i<(int)vertices1.size()-1; ++i)
   {
@@ -260,10 +260,10 @@ inline double distance_polygon_to_polygon_2d(const Point2dContainer& vertices1, 
 
   return dist;
 }
-  
-  
-  
-  
+
+
+
+
 // Further distance calculations:
 
 
@@ -323,14 +323,14 @@ inline double calc_distance_segment_to_segment3D(const Eigen::Ref<const Eigen::V
   double tc, tN, tD = D;       // tc = tN / tD, default tD = D >= 0
 
   // compute the line parameters of the two closest points
-  if (D < SMALL_NUM) 
+  if (D < SMALL_NUM)
   { // the lines are almost parallel
     sN = 0.0;         // force using point P0 on segment S1
     sD = 1.0;         // to prevent possible division by 0.0 later
     tN = e;
     tD = c;
   }
-  else 
+  else
   {       // get the closest points on the infinite lines
     sN = (b*e - c*d);
     tN = (a*e - b*d);
@@ -348,7 +348,7 @@ inline double calc_distance_segment_to_segment3D(const Eigen::Ref<const Eigen::V
     }
   }
 
-  if (tN < 0.0) 
+  if (tN < 0.0)
   {   // tc < 0 => the t=0 edge is visible
     tN = 0.0;
     // recompute sc for this edge
@@ -356,7 +356,7 @@ inline double calc_distance_segment_to_segment3D(const Eigen::Ref<const Eigen::V
       sN = 0.0;
     else if (-d > a)
       sN = sD;
-    else 
+    else
     {
       sN = -d;
       sD = a;
@@ -457,8 +457,8 @@ double calc_distance_point_to_segment( const VectorType& point, const VectorType
   return (point-Pb).norm();
 }
 
-  
-  
+
+
 } // namespace teb_local_planner
 
 #endif /* DISTANCE_CALCULATIONS_H */

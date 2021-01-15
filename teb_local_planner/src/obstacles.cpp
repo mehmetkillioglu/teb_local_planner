@@ -36,8 +36,8 @@
  * Author: Christoph Rösmann
  *********************************************************************/
 
-#include "teb_local_planner/obstacles.h"
-// #include "teb_local_planner/misc.h"
+#include "teb_local_planner/obstacles.hpp"
+// #include "teb_local_planner/misc.hpp"
 #include <rclcpp/logging.hpp>
 #include <rclcpp/logger.hpp>
 
@@ -49,7 +49,7 @@ void PolygonObstacle::fixPolygonClosure()
 {
   if (vertices_.size()<2)
     return;
-  
+
   if (vertices_.front().isApprox(vertices_.back()))
     vertices_.pop_back();
 }
@@ -63,25 +63,25 @@ void PolygonObstacle::calcCentroid()
                 "PolygonObstacle::calcCentroid(): number of vertices is empty. the resulting centroid is a vector of NANs.");
     return;
   }
-  
+
   // if polygon is a point
   if (noVertices()==1)
   {
     centroid_ = vertices_.front();
     return;
   }
-  
+
   // if polygon is a line:
   if (noVertices()==2)
   {
     centroid_ = 0.5*(vertices_.front() + vertices_.back());
     return;
   }
-  
+
   // otherwise:
-  
+
   centroid_.setZero();
-    
+
   // calculate centroid (see wikipedia http://de.wikipedia.org/wiki/Geometrischer_Schwerpunkt#Polygon)
   double A = 0;  // A = 0.5 * sum_0_n-1 (x_i * y_{i+1} - x_{i+1} * y_i)
   for (int i=0; i < noVertices()-1; ++i)
@@ -90,7 +90,7 @@ void PolygonObstacle::calcCentroid()
   }
   A += vertices_.at(noVertices()-1).coeffRef(0) * vertices_.at(0).coeffRef(1) - vertices_.at(0).coeffRef(0) * vertices_.at(noVertices()-1).coeffRef(1);
   A *= 0.5;
-  
+
   if (A!=0)
   {
     for (int i=0; i < noVertices()-1; ++i)
@@ -100,7 +100,7 @@ void PolygonObstacle::calcCentroid()
     }
     double aux = (vertices_.at(noVertices()-1).coeffRef(0) * vertices_.at(0).coeffRef(1) - vertices_.at(0).coeffRef(0) * vertices_.at(noVertices()-1).coeffRef(1));
     centroid_ +=  ( vertices_.at(noVertices()-1) + vertices_.at(0) )*aux;
-    centroid_ /= (6*A);	
+    centroid_ /= (6*A);
   }
   else // A == 0 -> all points are placed on a 'perfect' line
   {
@@ -135,17 +135,17 @@ Eigen::Vector2d PolygonObstacle::getClosestPoint(const Eigen::Vector2d& position
   {
     return vertices_.front();
   }
-  
+
   if (noVertices() > 1)
   {
-    
+
     Eigen::Vector2d new_pt = closest_point_on_line_segment_2d(position, vertices_.at(0), vertices_.at(1));
-    
+
     if (noVertices() > 2) // real polygon and not a line
     {
       double dist = (new_pt-position).norm();
       Eigen::Vector2d closest_pt = new_pt;
-      
+
       // check each polygon edge
       for (int i=1; i<noVertices()-1; ++i) // skip the first one, since we already checked it (new_pt)
       {
@@ -183,12 +183,12 @@ bool PolygonObstacle::checkLineIntersection(const Eigen::Vector2d& line_start, c
   // check each polygon edge
   for (int i=0; i<noVertices()-1; ++i)
   {
-    if ( check_line_segments_intersection_2d(line_start, line_end, vertices_.at(i), vertices_.at(i+1)) ) 
+    if ( check_line_segments_intersection_2d(line_start, line_end, vertices_.at(i), vertices_.at(i+1)) )
       return true;
   }
   if (noVertices()==2) // if polygon is a line
     return false;
-  
+
   return check_line_segments_intersection_2d(line_start, line_end, vertices_.back(), vertices_.front()); //otherwise close polygon
 }
 

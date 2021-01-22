@@ -405,6 +405,11 @@ public:
   bool isOptimized() const { return optimized_; };
 
   /**
+   * @brief Returns true if the planner has diverged.
+   */
+  bool hasDiverged() const override;
+	
+  /**
    * @brief Compute the cost vector of a given optimization problen (hyper-graph must exist).
    *
    * Use this method to obtain information about the current edge errors / costs (local cost functions). \n
@@ -675,6 +680,13 @@ protected:
    */
   void AddEdgesPreferRotDir();
 
+  /**
+   * @brief Add all edges (local cost function) for reducing the velocity of a vertex due to its associated obstacles
+   * @see buildGraph
+   * @see optimizeGraph
+   */
+  void AddEdgesVelocityObstacleRatio();
+  
   //@}
 
   /**
@@ -687,6 +699,8 @@ protected:
   const TebConfig * cfg_;      //!< Config class that stores and manages all related parameters
   ObstContainer * obstacles_;  //!< Store obstacles that are relevant for planning
   const ViaPointContainer * via_points_;  //!< Store via points for planning
+  std::vector<ObstContainer>
+    obstacles_per_vertex_;  //!< Store the obstacles associated with the n-1 initial vertices
 
   double cost_;  //!< Store cost value of the current hyper-graph
   RotType

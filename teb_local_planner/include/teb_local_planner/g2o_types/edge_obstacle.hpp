@@ -114,7 +114,7 @@ public:
    */
   void linearizeOplus()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgePointObstacle()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgePointObstacle()");
     const VertexPose* bandpt = static_cast<const VertexPose*>(_vertices[0]);
 
     Eigen::Vector2d deltaS = *_measurement - bandpt->position();

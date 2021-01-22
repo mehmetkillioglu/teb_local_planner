@@ -209,7 +209,14 @@ bool HomotopyClassPlanner::addEquivalenceClassIfNew(const EquivalenceClassPtr & 
     return false;
   }
 
-  if (hasEquivalenceClass(eq_class)) return false;
+  if (hasEquivalenceClass(eq_class)) {
+    // Allow up to configured number of Tebs that are in the same homotopy
+    // class as the current (best) Teb to avoid being stuck in a local minimum
+    if (
+      !isInBestTebClass(eq_class) ||
+      numTebsInBestTebClass() >= cfg_->hcp.max_number_plans_in_current_class)
+      return false;
+  }
 
   // Homotopy class not found -> Add to class-list, return that the h-signature is new
   equivalence_classes_.push_back(std::make_pair(eq_class, lock));
@@ -386,6 +393,29 @@ TebOptimalPlannerPtr HomotopyClassPlanner::addAndInitNewTeb(
 
   // If the candidate constitutes no new equivalence class, return a null pointer
   return TebOptimalPlannerPtr();
+}
+
+bool HomotopyClassPlanner::isInBestTebClass(const EquivalenceClassPtr & eq_class) const
+{
+  bool answer = false;
+  if (best_teb_eq_class_) answer = best_teb_eq_class_->isEqual(*eq_class);
+  return answer;
+}
+
+int HomotopyClassPlanner::numTebsInClass(const EquivalenceClassPtr & eq_class) const
+{
+  int count = 0;
+  for (const std::pair<EquivalenceClassPtr, bool> & eqrel : equivalence_classes_) {
+    if (eq_class->isEqual(*eqrel.first)) ++count;
+  }
+  return count;
+}
+
+int HomotopyClassPlanner::numTebsInBestTebClass() const
+{
+  int count = 0;
+  if (best_teb_eq_class_) count = numTebsInClass(best_teb_eq_class_);
+  return count;
 }
 
 TebOptimalPlannerPtr HomotopyClassPlanner::addAndInitNewTeb(
@@ -690,6 +720,14 @@ void HomotopyClassPlanner::setPreferredTurningDir(RotType dir)
        ++it_teb) {
     (*it_teb)->setPreferredTurningDir(dir);
   }
+}
+
+bool HomotopyClassPlanner::hasDiverged() const
+{
+  // Early return if there is no best trajectory initialized
+  if (!best_teb_) return false;
+
+  return best_teb_->hasDiverged();
 }
 
 void HomotopyClassPlanner::computeCurrentCost(

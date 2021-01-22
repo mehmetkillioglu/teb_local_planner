@@ -195,6 +195,11 @@ public:
     std::vector<double> & cost, double obst_cost_scale = 1.0, double viapoint_cost_scale = 1.0,
     bool alternative_time_cost = false) = 0;
 
+  /**
+   * @brief Returns true if the planner has diverged.
+   */
+  virtual bool hasDiverged() const = 0;
+
   nav2_util::LifecycleNode::SharedPtr node_{nullptr};
 };
 

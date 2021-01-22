@@ -373,6 +373,23 @@ geometry_msgs::msg::TwistStamped TebLocalPlannerROS::computeVelocityCommands(
       "teb_local_planner was not able to obtain a local plan for the current setting."));
   }
 
+  // Check for divergence
+  if (planner_->hasDiverged()) {
+    cmd_vel.twist.linear.x = cmd_vel.twist.linear.y = cmd_vel.twist.angular.z = 0;
+
+    // Reset everything to start again with the initialization of new trajectories.
+    planner_->clearPlanner();
+    RCLCPP_WARN_THROTTLE(
+      nh_->get_logger(), *clock_, 1.0,
+      "TebLocalPlannerROS: the trajectory has diverged. Resetting planner...");
+
+    ++no_infeasible_plans_;  // increase number of infeasible solutions in a row
+    time_last_infeasible_plan_ = clock_->now();
+    last_cmd_ = cmd_vel.twist;
+    throw nav2_core::PlannerException(
+      std::string("TebLocalPlannerROS: no valid command is found, planner diverged."));
+  }
+
   // Check feasibility (but within the first few states only)
   if (cfg_->robot.is_footprint_dynamic) {
     // Update footprint of the robot and minimum and maximum distance from the center of the robot to its footprint vertices.

@@ -152,7 +152,7 @@ public:
    */
   void linearizeOplus()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeAcceleration()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeAcceleration()");
     const VertexPointXY* conf1 = static_cast<const VertexPointXY*>(_vertices[0]);
     const VertexPointXY* conf2 = static_cast<const VertexPointXY*>(_vertices[1]);
     const VertexPointXY* conf3 = static_cast<const VertexPointXY*>(_vertices[2]);

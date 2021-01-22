@@ -128,7 +128,7 @@ public:
    */
   void linearizeOplus()
   {
-    TEB_ASSERT_MSG(cfg_, "You must call setTebConfig on EdgeVelocity()");
+    teb_check_true(cfg_, "You must call setTebConfig on EdgeVelocity()");
     const VertexPose* conf1 = static_cast<const VertexPose*>(_vertices[0]);
     const VertexPose* conf2 = static_cast<const VertexPose*>(_vertices[1]);
     const VertexTimeDiff* deltaT = static_cast<const VertexTimeDiff*>(_vertices[2]);

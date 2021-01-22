@@ -43,6 +43,7 @@
 #include <map>
 #include <memory>
 
+#include "teb_local_planner/g2o_types/edge_velocity_obstacle_ratio.hpp"
 #include "teb_local_planner/misc.hpp"
 #include "teb_local_planner/optimal_planner.hpp"
 
@@ -357,6 +358,8 @@ bool TebOptimalPlanner::buildGraph(double weight_multiplier)
     return false;
   }
 
+  optimizer_->setComputeBatchStatistics(cfg_->recovery.divergence_detection_enable);
+
   // add TEB vertices
   AddTEBVertices();
 
@@ -384,6 +387,8 @@ bool TebOptimalPlanner::buildGraph(double weight_multiplier)
     AddEdgesKinematicsCarlike();  // we have a carlike robot since the turning radius is bounded from below.
 
   AddEdgesPreferRotDir();
+
+  if (cfg_->optim.weight_velocity_obstacle_ratio > 0) AddEdgesVelocityObstacleRatio();
 
   return true;
 }
@@ -985,6 +990,44 @@ void TebOptimalPlanner::AddEdgesPreferRotDir()
 
     optimizer_->addEdge(rotdir_edge);
   }
+}
+
+void TebOptimalPlanner::AddEdgesVelocityObstacleRatio()
+{
+  Eigen::Matrix<double, 2, 2> information;
+  information(0, 0) = cfg_->optim.weight_velocity_obstacle_ratio;
+  information(1, 1) = cfg_->optim.weight_velocity_obstacle_ratio;
+  information(0, 1) = information(1, 0) = 0;
+
+  auto iter_obstacle = obstacles_per_vertex_.begin();
+
+  for (int index = 0; index < teb_.sizePoses() - 1; ++index) {
+    for (const ObstaclePtr obstacle : (*iter_obstacle++)) {
+      EdgeVelocityObstacleRatio * edge = new EdgeVelocityObstacleRatio;
+      edge->setVertex(0, teb_.PoseVertex(index));
+      edge->setVertex(1, teb_.PoseVertex(index + 1));
+      edge->setVertex(2, teb_.TimeDiffVertex(index));
+      edge->setInformation(information);
+      edge->setParameters(*cfg_, robot_model_.get(), obstacle.get());
+      optimizer_->addEdge(edge);
+    }
+  }
+}
+
+bool TebOptimalPlanner::hasDiverged() const
+{
+  // Early returns if divergence detection is not active
+  if (!cfg_->recovery.divergence_detection_enable) return false;
+
+  auto stats_vector = optimizer_->batchStatistics();
+
+  // No statistics yet
+  if (stats_vector.empty()) return false;
+
+  // Grab the statistics of the final iteration
+  const auto last_iter_stats = stats_vector.back();
+
+  return last_iter_stats.chi2 > cfg_->recovery.divergence_detection_max_chi_squared;
 }
 
 void TebOptimalPlanner::computeCurrentCost(

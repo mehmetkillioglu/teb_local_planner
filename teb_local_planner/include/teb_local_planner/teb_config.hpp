@@ -61,8 +61,8 @@ class TebConfig
 public:
   using UniquePtr = std::unique_ptr<TebConfig>;
 
-  std::string
-    odom_topic;  //!< Topic name of the odometry message, provided by the robot driver or simulator
+  //!< Topic name of the odometry message, provided by the robot driver or simulator
+  std::string odom_topic;
   std::string map_frame;  //!< Global planning frame
 
   //! Trajectory related parameters
@@ -396,8 +396,8 @@ public:
     optim.no_outer_iterations = 4;
     optim.optimization_activate = true;
     optim.optimization_verbose = false;
-    optim.penalty_epsilon = 0.1; //changed from 0.05
-    optim.weight_max_vel_x = 2;  //1
+    optim.penalty_epsilon = 0.1;  //changed from 0.05
+    optim.weight_max_vel_x = 2;   //1
     optim.weight_max_vel_y = 2;
     optim.weight_max_vel_theta = 1;
     optim.weight_acc_lim_x = 1;
@@ -423,7 +423,7 @@ public:
     hcp.enable_multithreading = true;
     hcp.simple_exploration = false;
     hcp.max_number_classes = 5;
-    hcp.max_number_plans_in_current_class = 1; //TODO: check this.
+    hcp.max_number_plans_in_current_class = 1;  //TODO: check this.
     hcp.selection_cost_hysteresis = 1.0;
     hcp.selection_prefer_initial_plan = 0.95;
     hcp.selection_obst_cost_scale = 100.0;

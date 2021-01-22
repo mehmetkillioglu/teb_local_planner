@@ -187,378 +187,285 @@ void TebConfig::declareParameters(
   para(nd + "oscillation_recovery_min_duration", Dv(recovery.oscillation_recovery_min_duration));
   para(nd + "oscillation_filter_duration", Dv(recovery.oscillation_filter_duration));
   para(nd + "divergence_detection_enable", Dv(recovery.divergence_detection_enable));
-  para(nd + "divergence_detection_max_chi_squared", Dv(recovery.divergence_detection_max_chi_squared));
+  para(
+    nd + "divergence_detection_max_chi_squared", Dv(recovery.divergence_detection_max_chi_squared));
 }
 
 void TebConfig::loadRosParamFromNodeHandle(
   const nav2_util::LifecycleNode::SharedPtr nh, const std::string name)
 {
-  nh->get_parameter_or(name + "." + "odom_topic", odom_topic, odom_topic);
-  nh->get_parameter_or(name + "." + "map_frame", map_frame, map_frame);
+  const std::string nd = name + ".";  // nd is short for name plus dot
+
+  nh->get_parameter_or(nd + "odom_topic", odom_topic, odom_topic);
+  nh->get_parameter_or(nd + "map_frame", map_frame, map_frame);
 
   // Trajectory
+  nh->get_parameter_or(nd + "teb_autosize", trajectory.teb_autosize, trajectory.teb_autosize);
+  nh->get_parameter_or(nd + "dt_ref", trajectory.dt_ref, trajectory.dt_ref);
+  nh->get_parameter_or(nd + "dt_hysteresis", trajectory.dt_hysteresis, trajectory.dt_hysteresis);
+  nh->get_parameter_or(nd + "min_samples", trajectory.min_samples, trajectory.min_samples);
+  nh->get_parameter_or(nd + "max_samples", trajectory.max_samples, trajectory.max_samples);
   nh->get_parameter_or(
-    name + "." + "teb_autosize", trajectory.teb_autosize, trajectory.teb_autosize);
-  nh->get_parameter_or(name + "." + "dt_ref", trajectory.dt_ref, trajectory.dt_ref);
-  nh->get_parameter_or(
-    name + "." + "dt_hysteresis", trajectory.dt_hysteresis, trajectory.dt_hysteresis);
-  nh->get_parameter_or(name + "." + "min_samples", trajectory.min_samples, trajectory.min_samples);
-  nh->get_parameter_or(name + "." + "max_samples", trajectory.max_samples, trajectory.max_samples);
-  nh->get_parameter_or(
-    name + "." + "global_plan_overwrite_orientation", trajectory.global_plan_overwrite_orientation,
+    nd + "global_plan_overwrite_orientation", trajectory.global_plan_overwrite_orientation,
     trajectory.global_plan_overwrite_orientation);
   nh->get_parameter_or(
-    name + "." + "allow_init_with_backwards_motion", trajectory.allow_init_with_backwards_motion,
+    nd + "allow_init_with_backwards_motion", trajectory.allow_init_with_backwards_motion,
     trajectory.allow_init_with_backwards_motion);
   nh->get_parameter_or(
-    name + "." + "global_plan_viapoint_sep", trajectory.global_plan_viapoint_sep,
+    nd + "global_plan_viapoint_sep", trajectory.global_plan_viapoint_sep,
     trajectory.global_plan_viapoint_sep);
   nh->get_parameter_or(
-    name + "." + "via_points_ordered", trajectory.via_points_ordered,
-    trajectory.via_points_ordered);
+    nd + "via_points_ordered", trajectory.via_points_ordered, trajectory.via_points_ordered);
   nh->get_parameter_or(
-    name + "." + "max_global_plan_lookahead_dist", trajectory.max_global_plan_lookahead_dist,
+    nd + "max_global_plan_lookahead_dist", trajectory.max_global_plan_lookahead_dist,
     trajectory.max_global_plan_lookahead_dist);
   nh->get_parameter_or(
-    name + "." + "global_plan_prune_distance", trajectory.global_plan_prune_distance,
+    nd + "global_plan_prune_distance", trajectory.global_plan_prune_distance,
     trajectory.global_plan_prune_distance);
   nh->get_parameter_or(
-    name + "." + "exact_arc_length", trajectory.exact_arc_length, trajectory.exact_arc_length);
+    nd + "exact_arc_length", trajectory.exact_arc_length, trajectory.exact_arc_length);
   nh->get_parameter_or(
-    name + "." + "force_reinit_new_goal_dist", trajectory.force_reinit_new_goal_dist,
+    nd + "force_reinit_new_goal_dist", trajectory.force_reinit_new_goal_dist,
     trajectory.force_reinit_new_goal_dist);
   nh->get_parameter_or(
-    name + "." + "force_reinit_new_goal_angular", trajectory.force_reinit_new_goal_angular,
+    nd + "force_reinit_new_goal_angular", trajectory.force_reinit_new_goal_angular,
     trajectory.force_reinit_new_goal_angular);
   nh->get_parameter_or(
-    name + "." + "feasibility_check_no_poses", trajectory.feasibility_check_no_poses,
+    nd + "feasibility_check_no_poses", trajectory.feasibility_check_no_poses,
     trajectory.feasibility_check_no_poses);
   nh->get_parameter_or(
-    name + "." + "publish_feedback", trajectory.publish_feedback, trajectory.publish_feedback);
+    nd + "publish_feedback", trajectory.publish_feedback, trajectory.publish_feedback);
   nh->get_parameter_or(
-    name + "." + "min_resolution_collision_check_angular",
+    nd + "min_resolution_collision_check_angular",
     trajectory.min_resolution_collision_check_angular,
     trajectory.min_resolution_collision_check_angular);
   nh->get_parameter_or(
-    name + "." + "control_look_ahead_poses", trajectory.control_look_ahead_poses,
+    nd + "control_look_ahead_poses", trajectory.control_look_ahead_poses,
     trajectory.control_look_ahead_poses);
 
   // Robot
-  nh->get_parameter_or(name + "." + "max_vel_x", robot.max_vel_x, robot.max_vel_x);
+  nh->get_parameter_or(nd + "max_vel_x", robot.max_vel_x, robot.max_vel_x);
   nh->get_parameter_or(
-    name + "." + "max_vel_x_backwards", robot.max_vel_x_backwards, robot.max_vel_x_backwards);
-  nh->get_parameter_or(name + "." + "max_vel_y", robot.max_vel_y, robot.max_vel_y);
-  nh->get_parameter_or(name + "." + "max_vel_theta", robot.max_vel_theta, robot.max_vel_theta);
-  nh->get_parameter_or(name + "." + "acc_lim_x", robot.acc_lim_x, robot.acc_lim_x);
-  nh->get_parameter_or(name + "." + "acc_lim_y", robot.acc_lim_y, robot.acc_lim_y);
-  nh->get_parameter_or(name + "." + "acc_lim_theta", robot.acc_lim_theta, robot.acc_lim_theta);
+    nd + "max_vel_x_backwards", robot.max_vel_x_backwards, robot.max_vel_x_backwards);
+  nh->get_parameter_or(nd + "max_vel_y", robot.max_vel_y, robot.max_vel_y);
+  nh->get_parameter_or(nd + "max_vel_theta", robot.max_vel_theta, robot.max_vel_theta);
+  nh->get_parameter_or(nd + "acc_lim_x", robot.acc_lim_x, robot.acc_lim_x);
+  nh->get_parameter_or(nd + "acc_lim_y", robot.acc_lim_y, robot.acc_lim_y);
+  nh->get_parameter_or(nd + "acc_lim_theta", robot.acc_lim_theta, robot.acc_lim_theta);
   nh->get_parameter_or(
-    name + "." + "min_turning_radius", robot.min_turning_radius, robot.min_turning_radius);
-  nh->get_parameter_or(name + "." + "wheelbase", robot.wheelbase, robot.wheelbase);
+    nd + "min_turning_radius", robot.min_turning_radius, robot.min_turning_radius);
+  nh->get_parameter_or(nd + "wheelbase", robot.wheelbase, robot.wheelbase);
   nh->get_parameter_or(
-    name + "." + "cmd_angle_instead_rotvel", robot.cmd_angle_instead_rotvel,
+    nd + "cmd_angle_instead_rotvel", robot.cmd_angle_instead_rotvel,
     robot.cmd_angle_instead_rotvel);
   nh->get_parameter_or(
-    name + "." + "is_footprint_dynamic", robot.is_footprint_dynamic, robot.is_footprint_dynamic);
+    nd + "is_footprint_dynamic", robot.is_footprint_dynamic, robot.is_footprint_dynamic);
+  nh->get_parameter_or(
+    nd + "use_proportional_saturation", robot.use_proportional_saturation,
+    robot.use_proportional_saturation);
+  nh->get_parameter_or(
+    nd + "transform_tolerance", robot.transform_tolerance, robot.transform_tolerance);
 
   // GoalTolerance
   nh->get_parameter_or(
-    name + "." + "xy_goal_tolerance", goal_tolerance.xy_goal_tolerance,
-    goal_tolerance.xy_goal_tolerance);
-  nh->get_parameter_or(
-    name + "." + "yaw_goal_tolerance", goal_tolerance.yaw_goal_tolerance,
+    nd + "yaw_goal_tolerance", goal_tolerance.yaw_goal_tolerance,
     goal_tolerance.yaw_goal_tolerance);
   nh->get_parameter_or(
-    name + "." + "free_goal_vel", goal_tolerance.free_goal_vel, goal_tolerance.free_goal_vel);
+    nd + "xy_goal_tolerance", goal_tolerance.xy_goal_tolerance, goal_tolerance.xy_goal_tolerance);
   nh->get_parameter_or(
-    name + "." + "complete_global_plan", goal_tolerance.complete_global_plan,
+    nd + "free_goal_vel", goal_tolerance.free_goal_vel, goal_tolerance.free_goal_vel);
+  nh->get_parameter_or(
+    nd + "complete_global_plan", goal_tolerance.complete_global_plan,
     goal_tolerance.complete_global_plan);
 
   // Obstacles
   nh->get_parameter_or(
-    name + "." + "min_obstacle_dist", obstacles.min_obstacle_dist, obstacles.min_obstacle_dist);
+    nd + "min_obstacle_dist", obstacles.min_obstacle_dist, obstacles.min_obstacle_dist);
+  nh->get_parameter_or(nd + "inflation_dist", obstacles.inflation_dist, obstacles.inflation_dist);
   nh->get_parameter_or(
-    name + "." + "inflation_dist", obstacles.inflation_dist, obstacles.inflation_dist);
-  nh->get_parameter_or(
-    name + "." + "dynamic_obstacle_inflation_dist", obstacles.dynamic_obstacle_inflation_dist,
+    nd + "dynamic_obstacle_inflation_dist", obstacles.dynamic_obstacle_inflation_dist,
     obstacles.dynamic_obstacle_inflation_dist);
   nh->get_parameter_or(
-    name + "." + "include_dynamic_obstacles", obstacles.include_dynamic_obstacles,
+    nd + "include_dynamic_obstacles", obstacles.include_dynamic_obstacles,
     obstacles.include_dynamic_obstacles);
   nh->get_parameter_or(
-    name + "." + "include_costmap_obstacles", obstacles.include_costmap_obstacles,
+    nd + "include_costmap_obstacles", obstacles.include_costmap_obstacles,
     obstacles.include_costmap_obstacles);
   nh->get_parameter_or(
-    name + "." + "costmap_obstacles_behind_robot_dist",
-    obstacles.costmap_obstacles_behind_robot_dist, obstacles.costmap_obstacles_behind_robot_dist);
+    nd + "costmap_obstacles_behind_robot_dist", obstacles.costmap_obstacles_behind_robot_dist,
+    obstacles.costmap_obstacles_behind_robot_dist);
   nh->get_parameter_or(
-    name + "." + "obstacle_poses_affected", obstacles.obstacle_poses_affected,
+    nd + "obstacle_poses_affected", obstacles.obstacle_poses_affected,
     obstacles.obstacle_poses_affected);
   nh->get_parameter_or(
-    name + "." + "legacy_obstacle_association", obstacles.legacy_obstacle_association,
+    nd + "legacy_obstacle_association", obstacles.legacy_obstacle_association,
     obstacles.legacy_obstacle_association);
   nh->get_parameter_or(
-    name + "." + "obstacle_association_force_inclusion_factor",
+    nd + "obstacle_association_force_inclusion_factor",
     obstacles.obstacle_association_force_inclusion_factor,
     obstacles.obstacle_association_force_inclusion_factor);
   nh->get_parameter_or(
-    name + "." + "obstacle_association_cutoff_factor", obstacles.obstacle_association_cutoff_factor,
+    nd + "obstacle_association_cutoff_factor", obstacles.obstacle_association_cutoff_factor,
     obstacles.obstacle_association_cutoff_factor);
   nh->get_parameter_or(
-    name + "." + "costmap_converter_plugin", obstacles.costmap_converter_plugin,
+    nd + "costmap_converter_plugin", obstacles.costmap_converter_plugin,
     obstacles.costmap_converter_plugin);
   nh->get_parameter_or(
-    name + "." + "costmap_converter_spin_thread", obstacles.costmap_converter_spin_thread,
+    nd + "costmap_converter_spin_thread", obstacles.costmap_converter_spin_thread,
     obstacles.costmap_converter_spin_thread);
+  nh->get_parameter_or(
+    nd + "costmap_converter_rate", obstacles.costmap_converter_rate,
+    obstacles.costmap_converter_rate);
+  nh->get_parameter_or(
+    nd + "obstacle_proximity_ratio_max_vel", obstacles.obstacle_proximity_ratio_max_vel,
+    obstacles.obstacle_proximity_ratio_max_vel);
+  nh->get_parameter_or(
+    nd + "obstacle_proximity_lower_bound", obstacles.obstacle_proximity_lower_bound,
+    obstacles.obstacle_proximity_lower_bound);
+  nh->get_parameter_or(
+    nd + "obstacle_proximity_upper_bound", obstacles.obstacle_proximity_upper_bound,
+    obstacles.obstacle_proximity_upper_bound);
 
   // Optimization
   nh->get_parameter_or(
-    name + "." + "no_inner_iterations", optim.no_inner_iterations, optim.no_inner_iterations);
+    nd + "no_inner_iterations", optim.no_inner_iterations, optim.no_inner_iterations);
   nh->get_parameter_or(
-    name + "." + "no_outer_iterations", optim.no_outer_iterations, optim.no_outer_iterations);
+    nd + "no_outer_iterations", optim.no_outer_iterations, optim.no_outer_iterations);
   nh->get_parameter_or(
-    name + "." + "optimization_activate", optim.optimization_activate, optim.optimization_activate);
+    nd + "optimization_activate", optim.optimization_activate, optim.optimization_activate);
   nh->get_parameter_or(
-    name + "." + "optimization_verbose", optim.optimization_verbose, optim.optimization_verbose);
+    nd + "optimization_verbose", optim.optimization_verbose, optim.optimization_verbose);
+  nh->get_parameter_or(nd + "penalty_epsilon", optim.penalty_epsilon, optim.penalty_epsilon);
+  nh->get_parameter_or(nd + "weight_max_vel_x", optim.weight_max_vel_x, optim.weight_max_vel_x);
+  nh->get_parameter_or(nd + "weight_max_vel_y", optim.weight_max_vel_y, optim.weight_max_vel_y);
   nh->get_parameter_or(
-    name + "." + "penalty_epsilon", optim.penalty_epsilon, optim.penalty_epsilon);
+    nd + "weight_max_vel_theta", optim.weight_max_vel_theta, optim.weight_max_vel_theta);
+  nh->get_parameter_or(nd + "weight_acc_lim_x", optim.weight_acc_lim_x, optim.weight_acc_lim_x);
+  nh->get_parameter_or(nd + "weight_acc_lim_y", optim.weight_acc_lim_y, optim.weight_acc_lim_y);
   nh->get_parameter_or(
-    name + "." + "weight_max_vel_x", optim.weight_max_vel_x, optim.weight_max_vel_x);
+    nd + "weight_acc_lim_theta", optim.weight_acc_lim_theta, optim.weight_acc_lim_theta);
   nh->get_parameter_or(
-    name + "." + "weight_max_vel_y", optim.weight_max_vel_y, optim.weight_max_vel_y);
+    nd + "weight_kinematics_nh", optim.weight_kinematics_nh, optim.weight_kinematics_nh);
   nh->get_parameter_or(
-    name + "." + "weight_max_vel_theta", optim.weight_max_vel_theta, optim.weight_max_vel_theta);
-  nh->get_parameter_or(
-    name + "." + "weight_acc_lim_x", optim.weight_acc_lim_x, optim.weight_acc_lim_x);
-  nh->get_parameter_or(
-    name + "." + "weight_acc_lim_y", optim.weight_acc_lim_y, optim.weight_acc_lim_y);
-  nh->get_parameter_or(
-    name + "." + "weight_acc_lim_theta", optim.weight_acc_lim_theta, optim.weight_acc_lim_theta);
-  nh->get_parameter_or(
-    name + "." + "weight_kinematics_nh", optim.weight_kinematics_nh, optim.weight_kinematics_nh);
-  nh->get_parameter_or(
-    name + "." + "weight_kinematics_forward_drive", optim.weight_kinematics_forward_drive,
+    nd + "weight_kinematics_forward_drive", optim.weight_kinematics_forward_drive,
     optim.weight_kinematics_forward_drive);
   nh->get_parameter_or(
-    name + "." + "weight_kinematics_turning_radius", optim.weight_kinematics_turning_radius,
+    nd + "weight_kinematics_turning_radius", optim.weight_kinematics_turning_radius,
     optim.weight_kinematics_turning_radius);
   nh->get_parameter_or(
-    name + "." + "weight_optimaltime", optim.weight_optimaltime, optim.weight_optimaltime);
+    nd + "weight_optimaltime", optim.weight_optimaltime, optim.weight_optimaltime);
   nh->get_parameter_or(
-    name + "." + "weight_shortest_path", optim.weight_shortest_path, optim.weight_shortest_path);
+    nd + "weight_shortest_path", optim.weight_shortest_path, optim.weight_shortest_path);
+  nh->get_parameter_or(nd + "weight_obstacle", optim.weight_obstacle, optim.weight_obstacle);
+  nh->get_parameter_or(nd + "weight_inflation", optim.weight_inflation, optim.weight_inflation);
   nh->get_parameter_or(
-    name + "." + "weight_obstacle", optim.weight_obstacle, optim.weight_obstacle);
+    nd + "weight_dynamic_obstacle", optim.weight_dynamic_obstacle, optim.weight_dynamic_obstacle);
   nh->get_parameter_or(
-    name + "." + "weight_inflation", optim.weight_inflation, optim.weight_inflation);
-  nh->get_parameter_or(
-    name + "." + "weight_dynamic_obstacle", optim.weight_dynamic_obstacle,
-    optim.weight_dynamic_obstacle);
-  nh->get_parameter_or(
-    name + "." + "weight_dynamic_obstacle_inflation", optim.weight_dynamic_obstacle_inflation,
+    nd + "weight_dynamic_obstacle_inflation", optim.weight_dynamic_obstacle_inflation,
     optim.weight_dynamic_obstacle_inflation);
   nh->get_parameter_or(
-    name + "." + "weight_viapoint", optim.weight_viapoint, optim.weight_viapoint);
+    nd + "weight_velocity_obstacle_ratio", optim.weight_velocity_obstacle_ratio,
+    optim.weight_velocity_obstacle_ratio);
+  nh->get_parameter_or(nd + "weight_viapoint", optim.weight_viapoint, optim.weight_viapoint);
   nh->get_parameter_or(
-    name + "." + "weight_prefer_rotdir", optim.weight_prefer_rotdir, optim.weight_prefer_rotdir);
+    nd + "weight_prefer_rotdir", optim.weight_prefer_rotdir, optim.weight_prefer_rotdir);
   nh->get_parameter_or(
-    name + "." + "weight_adapt_factor", optim.weight_adapt_factor, optim.weight_adapt_factor);
+    nd + "weight_adapt_factor", optim.weight_adapt_factor, optim.weight_adapt_factor);
   nh->get_parameter_or(
-    name + "." + "obstacle_cost_exponent", optim.obstacle_cost_exponent,
-    optim.obstacle_cost_exponent);
+    nd + "obstacle_cost_exponent", optim.obstacle_cost_exponent, optim.obstacle_cost_exponent);
 
   // Homotopy Class Planner
   nh->get_parameter_or(
-    name + "." + "enable_homotopy_class_planning", hcp.enable_homotopy_class_planning,
+    nd + "enable_homotopy_class_planning", hcp.enable_homotopy_class_planning,
     hcp.enable_homotopy_class_planning);
   nh->get_parameter_or(
-    name + "." + "enable_multithreading", hcp.enable_multithreading, hcp.enable_multithreading);
+    nd + "enable_multithreading", hcp.enable_multithreading, hcp.enable_multithreading);
+  nh->get_parameter_or(nd + "simple_exploration", hcp.simple_exploration, hcp.simple_exploration);
+  nh->get_parameter_or(nd + "max_number_classes", hcp.max_number_classes, hcp.max_number_classes);
   nh->get_parameter_or(
-    name + "." + "simple_exploration", hcp.simple_exploration, hcp.simple_exploration);
+    nd + "max_number_plans_in_current_class", hcp.max_number_plans_in_current_class,
+    hcp.max_number_plans_in_current_class);
   nh->get_parameter_or(
-    name + "." + "max_number_classes", hcp.max_number_classes, hcp.max_number_classes);
+    nd + "selection_cost_hysteresis", hcp.selection_cost_hysteresis, hcp.selection_cost_hysteresis);
   nh->get_parameter_or(
-    name + "." + "selection_obst_cost_scale", hcp.selection_obst_cost_scale,
-    hcp.selection_obst_cost_scale);
-  nh->get_parameter_or(
-    name + "." + "selection_prefer_initial_plan", hcp.selection_prefer_initial_plan,
+    nd + "selection_prefer_initial_plan", hcp.selection_prefer_initial_plan,
     hcp.selection_prefer_initial_plan);
   nh->get_parameter_or(
-    name + "." + "selection_viapoint_cost_scale", hcp.selection_viapoint_cost_scale,
+    nd + "selection_obst_cost_scale", hcp.selection_obst_cost_scale, hcp.selection_obst_cost_scale);
+  nh->get_parameter_or(
+    nd + "selection_viapoint_cost_scale", hcp.selection_viapoint_cost_scale,
     hcp.selection_viapoint_cost_scale);
   nh->get_parameter_or(
-    name + "." + "selection_cost_hysteresis", hcp.selection_cost_hysteresis,
-    hcp.selection_cost_hysteresis);
-  nh->get_parameter_or(
-    name + "." + "selection_alternative_time_cost", hcp.selection_alternative_time_cost,
+    nd + "selection_alternative_time_cost", hcp.selection_alternative_time_cost,
     hcp.selection_alternative_time_cost);
   nh->get_parameter_or(
-    name + "." + "switching_blocking_period", hcp.switching_blocking_period,
-    hcp.switching_blocking_period);
+    nd + "selection_dropping_probability", hcp.selection_dropping_probability,
+    hcp.selection_dropping_probability);
   nh->get_parameter_or(
-    name + "." + "roadmap_graph_samples", hcp.roadmap_graph_no_samples,
-    hcp.roadmap_graph_no_samples);
+    nd + "switching_blocking_period", hcp.switching_blocking_period, hcp.switching_blocking_period);
   nh->get_parameter_or(
-    name + "." + "roadmap_graph_area_width", hcp.roadmap_graph_area_width,
-    hcp.roadmap_graph_area_width);
+    nd + "roadmap_graph_samples", hcp.roadmap_graph_no_samples, hcp.roadmap_graph_no_samples);
   nh->get_parameter_or(
-    name + "." + "roadmap_graph_area_length_scale", hcp.roadmap_graph_area_length_scale,
+    nd + "roadmap_graph_area_width", hcp.roadmap_graph_area_width, hcp.roadmap_graph_area_width);
+  nh->get_parameter_or(
+    nd + "roadmap_graph_area_length_scale", hcp.roadmap_graph_area_length_scale,
     hcp.roadmap_graph_area_length_scale);
   nh->get_parameter_or(
-    name + "." + "h_signature_prescaler", hcp.h_signature_prescaler, hcp.h_signature_prescaler);
+    nd + "h_signature_prescaler", hcp.h_signature_prescaler, hcp.h_signature_prescaler);
   nh->get_parameter_or(
-    name + "." + "h_signature_threshold", hcp.h_signature_threshold, hcp.h_signature_threshold);
+    nd + "h_signature_threshold", hcp.h_signature_threshold, hcp.h_signature_threshold);
   nh->get_parameter_or(
-    name + "." + "obstacle_keypoint_offset", hcp.obstacle_keypoint_offset,
-    hcp.obstacle_keypoint_offset);
+    nd + "obstacle_keypoint_offset", hcp.obstacle_keypoint_offset, hcp.obstacle_keypoint_offset);
   nh->get_parameter_or(
-    name + "." + "obstacle_heading_threshold", hcp.obstacle_heading_threshold,
+    nd + "obstacle_heading_threshold", hcp.obstacle_heading_threshold,
     hcp.obstacle_heading_threshold);
   nh->get_parameter_or(
-    name + "." + "viapoints_all_candidates", hcp.viapoints_all_candidates,
-    hcp.viapoints_all_candidates);
+    nd + "viapoints_all_candidates", hcp.viapoints_all_candidates, hcp.viapoints_all_candidates);
+  nh->get_parameter_or(nd + "visualize_hc_graph", hcp.visualize_hc_graph, hcp.visualize_hc_graph);
   nh->get_parameter_or(
-    name + "." + "visualize_hc_graph", hcp.visualize_hc_graph, hcp.visualize_hc_graph);
-  nh->get_parameter_or(
-    name + "." + "visualize_with_time_as_z_axis_scale", hcp.visualize_with_time_as_z_axis_scale,
+    nd + "visualize_with_time_as_z_axis_scale", hcp.visualize_with_time_as_z_axis_scale,
     hcp.visualize_with_time_as_z_axis_scale);
   nh->get_parameter_or(
-    name + "." + "delete_detours_backwards", hcp.delete_detours_backwards,
-    hcp.delete_detours_backwards);
+    nd + "delete_detours_backwards", hcp.delete_detours_backwards, hcp.delete_detours_backwards);
   nh->get_parameter_or(
-    name + "." + "detours_orientation_tolerance", hcp.detours_orientation_tolerance,
+    nd + "detours_orientation_tolerance", hcp.detours_orientation_tolerance,
     hcp.detours_orientation_tolerance);
   nh->get_parameter_or(
-    name + "." + "length_start_orientation_vector", hcp.length_start_orientation_vector,
+    nd + "length_start_orientation_vector", hcp.length_start_orientation_vector,
     hcp.length_start_orientation_vector);
   nh->get_parameter_or(
-    name + "." + "max_ratio_detours_duration_best_duration",
-    hcp.max_ratio_detours_duration_best_duration, hcp.max_ratio_detours_duration_best_duration);
+    nd + "max_ratio_detours_duration_best_duration", hcp.max_ratio_detours_duration_best_duration,
+    hcp.max_ratio_detours_duration_best_duration);
 
   // Recovery
 
   nh->get_parameter_or(
-    name + "." + "shrink_horizon_backup", recovery.shrink_horizon_backup,
-    recovery.shrink_horizon_backup);
+    nd + "shrink_horizon_backup", recovery.shrink_horizon_backup, recovery.shrink_horizon_backup);
   nh->get_parameter_or(
-    name + "." + "shrink_horizon_min_duration", recovery.shrink_horizon_min_duration,
+    nd + "shrink_horizon_min_duration", recovery.shrink_horizon_min_duration,
     recovery.shrink_horizon_min_duration);
   nh->get_parameter_or(
-    name + "." + "oscillation_recovery", recovery.oscillation_recovery,
-    recovery.oscillation_recovery);
+    nd + "oscillation_recovery", recovery.oscillation_recovery, recovery.oscillation_recovery);
   nh->get_parameter_or(
-    name + "." + "oscillation_v_eps", recovery.oscillation_v_eps, recovery.oscillation_v_eps);
+    nd + "oscillation_v_eps", recovery.oscillation_v_eps, recovery.oscillation_v_eps);
   nh->get_parameter_or(
-    name + "." + "oscillation_omega_eps", recovery.oscillation_omega_eps,
-    recovery.oscillation_omega_eps);
+    nd + "oscillation_omega_eps", recovery.oscillation_omega_eps, recovery.oscillation_omega_eps);
   nh->get_parameter_or(
-    name + "." + "oscillation_recovery_min_duration", recovery.oscillation_recovery_min_duration,
+    nd + "oscillation_recovery_min_duration", recovery.oscillation_recovery_min_duration,
     recovery.oscillation_recovery_min_duration);
   nh->get_parameter_or(
-    name + "." + "oscillation_filter_duration", recovery.oscillation_filter_duration,
+    nd + "oscillation_filter_duration", recovery.oscillation_filter_duration,
     recovery.oscillation_filter_duration);
+  nh->get_parameter_or(
+    nd + "divergence_detection_enable", recovery.divergence_detection_enable,
+    recovery.divergence_detection_enable);
+  nh->get_parameter_or(
+    nd + "divergence_detection_max_chi_squared", recovery.divergence_detection_max_chi_squared,
+    recovery.divergence_detection_max_chi_squared);
 
   checkParameters(nh);
   checkDeprecated(nh, name);
 }
-
-// TODO : Dynamic reconfigure is not supported in ROS2 until now
-//void TebConfig::reconfigure(TebLocalPlannerReconfigureConfig& cfg)
-//{
-//  std::lock_guard<std::mutex> l(config_mutex_);
-
-//  // Trajectory
-//  trajectory.teb_autosize = cfg.teb_autosize;
-//  trajectory.dt_ref = cfg.dt_ref;
-//  trajectory.dt_hysteresis = cfg.dt_hysteresis;
-//  trajectory.global_plan_overwrite_orientation = cfg.global_plan_overwrite_orientation;
-//  trajectory.allow_init_with_backwards_motion = cfg.allow_init_with_backwards_motion;
-//  trajectory.global_plan_viapoint_sep = cfg.global_plan_viapoint_sep;
-//  trajectory.via_points_ordered = cfg.via_points_ordered;
-//  trajectory.max_global_plan_lookahead_dist = cfg.max_global_plan_lookahead_dist;
-//  trajectory.exact_arc_length = cfg.exact_arc_length;
-//  trajectory.force_reinit_new_goal_dist = cfg.force_reinit_new_goal_dist;
-//  trajectory.feasibility_check_no_poses = cfg.feasibility_check_no_poses;
-//  trajectory.publish_feedback = cfg.publish_feedback;
-
-//  // Robot
-//  robot.max_vel_x = cfg.max_vel_x;
-//  robot.max_vel_x_backwards = cfg.max_vel_x_backwards;
-//  robot.max_vel_y = cfg.max_vel_y;
-//  robot.max_vel_theta = cfg.max_vel_theta;
-//  robot.acc_lim_x = cfg.acc_lim_x;
-//  robot.acc_lim_y = cfg.acc_lim_y;
-//  robot.acc_lim_theta = cfg.acc_lim_theta;
-//  robot.min_turning_radius = cfg.min_turning_radius;
-//  robot.wheelbase = cfg.wheelbase;
-//  robot.cmd_angle_instead_rotvel = cfg.cmd_angle_instead_rotvel;
-
-//  // GoalTolerance
-//  goal_tolerance.xy_goal_tolerance = cfg.xy_goal_tolerance;
-//  goal_tolerance.yaw_goal_tolerance = cfg.yaw_goal_tolerance;
-//  goal_tolerance.free_goal_vel = cfg.free_goal_vel;
-
-//  // Obstacles
-//  obstacles.min_obstacle_dist = cfg.min_obstacle_dist;
-//  obstacles.inflation_dist = cfg.inflation_dist;
-//  obstacles.dynamic_obstacle_inflation_dist = cfg.dynamic_obstacle_inflation_dist;
-//  obstacles.include_dynamic_obstacles = cfg.include_dynamic_obstacles;
-//  obstacles.include_costmap_obstacles = cfg.include_costmap_obstacles;
-//  obstacles.legacy_obstacle_association = cfg.legacy_obstacle_association;
-//  obstacles.obstacle_association_force_inclusion_factor = cfg.obstacle_association_force_inclusion_factor;
-//  obstacles.obstacle_association_cutoff_factor = cfg.obstacle_association_cutoff_factor;
-//  obstacles.costmap_obstacles_behind_robot_dist = cfg.costmap_obstacles_behind_robot_dist;
-//  obstacles.obstacle_poses_affected = cfg.obstacle_poses_affected;
-
-//  // Optimization
-//  optim.no_inner_iterations = cfg.no_inner_iterations;
-//  optim.no_outer_iterations = cfg.no_outer_iterations;
-//  optim.optimization_activate = cfg.optimization_activate;
-//  optim.optimization_verbose = cfg.optimization_verbose;
-//  optim.penalty_epsilon = cfg.penalty_epsilon;
-//  optim.weight_max_vel_x = cfg.weight_max_vel_x;
-//  optim.weight_max_vel_y = cfg.weight_max_vel_y;
-//  optim.weight_max_vel_theta = cfg.weight_max_vel_theta;
-//  optim.weight_acc_lim_x = cfg.weight_acc_lim_x;
-//  optim.weight_acc_lim_y = cfg.weight_acc_lim_y;
-//  optim.weight_acc_lim_theta = cfg.weight_acc_lim_theta;
-//  optim.weight_kinematics_nh = cfg.weight_kinematics_nh;
-//  optim.weight_kinematics_forward_drive = cfg.weight_kinematics_forward_drive;
-//  optim.weight_kinematics_turning_radius = cfg.weight_kinematics_turning_radius;
-//  optim.weight_optimaltime = cfg.weight_optimaltime;
-//  optim.weight_obstacle = cfg.weight_obstacle;
-//  optim.weight_inflation = cfg.weight_inflation;
-//  optim.weight_dynamic_obstacle = cfg.weight_dynamic_obstacle;
-//  optim.weight_dynamic_obstacle_inflation = cfg.weight_dynamic_obstacle_inflation;
-//  optim.weight_viapoint = cfg.weight_viapoint;
-//  optim.weight_adapt_factor = cfg.weight_adapt_factor;
-
-//  // Homotopy Class Planner
-//  hcp.enable_multithreading = cfg.enable_multithreading;
-//  hcp.max_number_classes = cfg.max_number_classes;
-//  hcp.selection_cost_hysteresis = cfg.selection_cost_hysteresis;
-//  hcp.selection_prefer_initial_plan = cfg.selection_prefer_initial_plan;
-//  hcp.selection_obst_cost_scale = cfg.selection_obst_cost_scale;
-//  hcp.selection_viapoint_cost_scale = cfg.selection_viapoint_cost_scale;
-//  hcp.selection_alternative_time_cost = cfg.selection_alternative_time_cost;
-//  hcp.switching_blocking_period = cfg.switching_blocking_period;
-
-//  hcp.obstacle_heading_threshold = cfg.obstacle_heading_threshold;
-//  hcp.roadmap_graph_no_samples = cfg.roadmap_graph_no_samples;
-//  hcp.roadmap_graph_area_width = cfg.roadmap_graph_area_width;
-//  hcp.roadmap_graph_area_length_scale = cfg.roadmap_graph_area_length_scale;
-//  hcp.h_signature_prescaler = cfg.h_signature_prescaler;
-//  hcp.h_signature_threshold = cfg.h_signature_threshold;
-//  hcp.viapoints_all_candidates = cfg.viapoints_all_candidates;
-//  hcp.visualize_hc_graph = cfg.visualize_hc_graph;
-//  hcp.visualize_with_time_as_z_axis_scale = cfg.visualize_with_time_as_z_axis_scale;
-
-//  // Recovery
-
-//  recovery.shrink_horizon_backup = cfg.shrink_horizon_backup;
-//  recovery.oscillation_recovery = cfg.oscillation_recovery;
-
-//  checkParameters();
-//}
 
 void TebConfig::checkParameters(const nav2_util::LifecycleNode::SharedPtr nh) const
 {

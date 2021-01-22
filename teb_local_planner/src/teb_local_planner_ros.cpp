@@ -202,7 +202,8 @@ void TebLocalPlannerROS::initialize(nav2_util::LifecycleNode::SharedPtr node)
     time_last_oscillation_ = clock_->now();
     RCLCPP_DEBUG(node->get_logger(), "teb_local_planner plugin initialized.");
   } else {
-    RCLCPP_INFO(node->get_logger(), "teb_local_planner has already been initialized, doing nothing.");
+    RCLCPP_INFO(
+      node->get_logger(), "teb_local_planner has already been initialized, doing nothing.");
   }
 }
 
@@ -662,7 +663,8 @@ bool TebLocalPlannerROS::pruneGlobalPlan(
 
     if (erase_end != global_plan.begin()) global_plan.erase(global_plan.begin(), erase_end);
   } catch (const tf2::TransformException & ex) {
-    RCLCPP_DEBUG(nh_->get_logger(), "Cannot prune path since no transform is available: %s\n", ex.what());
+    RCLCPP_DEBUG(
+      nh_->get_logger(), "Cannot prune path since no transform is available: %s\n", ex.what());
     return false;
   }
   return true;
@@ -858,29 +860,41 @@ void TebLocalPlannerROS::saturateVelocity(
   double & vx, double & vy, double & omega, double max_vel_x, double max_vel_y,
   double max_vel_theta, double max_vel_x_backwards) const
 {
+  double ratio_x = 1.0, ratio_omega = 1.0, ratio_y = 1.0;
   // Limit translational velocity for forward driving
-  if (vx > max_vel_x) vx = max_vel_x;
+  if (vx > max_vel_x) {
+    ratio_x = max_vel_x / vx;
+  }
 
   // limit strafing velocity
-  if (vy > max_vel_y)
-    vy = max_vel_y;
-  else if (vy < -max_vel_y)
-    vy = -max_vel_y;
+  if (vy > max_vel_y || vy < -max_vel_y) {
+    ratio_y = std::abs(vy / max_vel_y);
+  }
 
   // Limit angular velocity
-  if (omega > max_vel_theta)
-    omega = max_vel_theta;
-  else if (omega < -max_vel_theta)
-    omega = -max_vel_theta;
+  if (omega > max_vel_theta || omega < -max_vel_theta) {
+    ratio_omega = std::abs(max_vel_theta / omega);
+  }
 
   // Limit backwards velocity
-  if (max_vel_x_backwards <= 0) {
+  if (max_vel_x_backwards <= 0.0) {
     RCLCPP_WARN_ONCE(
       nh_->get_logger(),
       "TebLocalPlannerROS(): Do not choose max_vel_x_backwards to be <=0. Disable backwards "
       "driving by increasing the optimization weight for penalyzing backwards driving.");
   } else if (vx < -max_vel_x_backwards)
-    vx = -max_vel_x_backwards;
+    ratio_x = -max_vel_x_backwards / vx;
+
+  if (cfg_->robot.use_proportional_saturation) {
+    double ratio = std::min(std::min(ratio_x, ratio_y), ratio_omega);
+    vx *= ratio;
+    vy *= ratio;
+    omega *= ratio;
+  } else {
+    vx *= ratio_x;
+    vy *= ratio_y;
+    omega *= ratio_omega;
+  }
 }
 
 double TebLocalPlannerROS::convertTransRotVelToSteeringAngle(
@@ -1066,8 +1080,8 @@ RobotFootprintModelPtr TebLocalPlannerROS::getRobotFootprintFromParamServer(
       return std::make_shared<PointRobotFootprint>();
     }
     RCLCPP_INFO(
-      nh_->get_logger(), "Footprint model 'circular' (radius: %fm) loaded for trajectory optimization.",
-      radius);
+      nh_->get_logger(),
+      "Footprint model 'circular' (radius: %fm) loaded for trajectory optimization.", radius);
     return std::make_shared<CircularRobotFootprint>(radius);
   }
 
@@ -1164,7 +1178,8 @@ RobotFootprintModelPtr TebLocalPlannerROS::getRobotFootprintFromParamServer(
       for (const auto & pt : footprint) {
         polygon.push_back(Eigen::Vector2d(pt.x, pt.y));
       }
-      RCLCPP_INFO(nh_->get_logger(), "Footprint model 'polygon' loaded for trajectory optimization.");
+      RCLCPP_INFO(
+        nh_->get_logger(), "Footprint model 'polygon' loaded for trajectory optimization.");
       return std::make_shared<PolygonRobotFootprint>(polygon);
     } else {
       RCLCPP_ERROR(

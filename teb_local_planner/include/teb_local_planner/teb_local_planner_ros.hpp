@@ -116,7 +116,10 @@ public:
   /**
     * @brief Initializes the teb plugin
     */
-  void initialize(nav2_util::LifecycleNode::SharedPtr node);
+  // void initialize(
+  //   const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, std::string name,
+  //   const std::shared_ptr<tf2_ros::Buffer> & tf,
+  //   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros);
 
   /**
     * @brief Set the plan that the teb local planner is following
@@ -417,11 +420,10 @@ private:
   double robot_inscribed_radius_;     //!< The radius of the inscribed circle of the robot
   double robot_circumscribed_radius;  //!< The radius of the circumscribed circle of the robot
 
-  std::string global_frame_;      //!< The frame in which the controller will run
   std::string robot_base_frame_;  //!< Used as the base frame id of the robot
 
   // flags
-  bool initialized_;  //!< Keeps track about the correct initialization of this class
+  // bool initialized_;  //!< Keeps track about the correct initialization of this class
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

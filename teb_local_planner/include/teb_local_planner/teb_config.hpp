@@ -63,7 +63,8 @@ public:
 
   //!< Topic name of the odometry message, provided by the robot driver or simulator
   std::string odom_topic;
-  std::string map_frame;  //!< Global planning frame
+  std::string global_frame;  //!< Global planning frame
+  double controller_frequency; //
 
   //! Trajectory related parameters
   struct Trajectory
@@ -325,7 +326,8 @@ public:
   TebConfig()
   {
     odom_topic = "odom";
-    map_frame = "odom";
+    global_frame = "map";
+    controller_frequency = 5.0;
 
     // Trajectory
 

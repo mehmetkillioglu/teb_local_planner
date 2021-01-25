@@ -165,7 +165,7 @@ public:
 
     // Visualize Edges
     visualization_msgs::msg::Marker marker;
-    marker.header.frame_id = cfg_->map_frame;
+    marker.header.frame_id = cfg_->global_frame;
     marker.header.stamp = nh_->now();
     marker.ns = ns_prefix + "Edges";
     marker.id = 0;
@@ -234,7 +234,7 @@ public:
     teb_marker_pub_->publish(marker);
 
     // Visualize vertices
-    marker.header.frame_id = cfg_->map_frame;
+    marker.header.frame_id = cfg_->global_frame;
     marker.header.stamp = nh_->now();
     marker.ns = ns_prefix + "Vertices";
     marker.id = 0;
@@ -312,7 +312,7 @@ public:
     if (printErrorWhenNotInitialized()) return;
 
     visualization_msgs::msg::Marker marker;
-    marker.header.frame_id = cfg_->map_frame;
+    marker.header.frame_id = cfg_->global_frame;
     marker.header.stamp = nh_->now();
     marker.ns = ns;
     marker.id = 0;

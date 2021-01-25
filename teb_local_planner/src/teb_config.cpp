@@ -54,8 +54,9 @@ void TebConfig::declareParameters(
     para_, nh, _1, _2, e);  // use function para to declare parameters and their default value
 
   // Global
-  para(nd + "odom_topic", Dv("odom_topic"));
-  para(nd + "map_frame", Dv("map_frame"));
+  para(nd + "odom_topic", Dv(odom_topic));
+  para(nd + "global_frame", Dv(global_frame));
+  para(nd + "controller_frequency", Dv(controller_frequency));
 
   // Trajectory
   para(nd + "teb_autosize", Dv(trajectory.teb_autosize));
@@ -197,7 +198,8 @@ void TebConfig::loadRosParamFromNodeHandle(
   const std::string nd = name + ".";  // nd is short for name plus dot
 
   nh->get_parameter_or(nd + "odom_topic", odom_topic, odom_topic);
-  nh->get_parameter_or(nd + "map_frame", map_frame, map_frame);
+  nh->get_parameter_or(nd + "global_frame", global_frame, global_frame);
+  nh->get_parameter_or(nd + "controller_frequency", controller_frequency, controller_frequency);
 
   // Trajectory
   nh->get_parameter_or(nd + "teb_autosize", trajectory.teb_autosize, trajectory.teb_autosize);

@@ -86,7 +86,7 @@ void TebVisualization::publishLocalPlanAndPoses(const TimedElasticBand& teb) con
 
     // create path msg
     nav_msgs::msg::Path teb_path;
-    teb_path.header.frame_id = cfg_->map_frame;
+    teb_path.header.frame_id = cfg_->global_frame;
     teb_path.header.stamp = nh_->now();
 
     // create pose_array (along trajectory)
@@ -126,7 +126,7 @@ void TebVisualization::publishRobotFootprintModel(const PoseSE2& current_pose, c
   int idx = 1000000;  // avoid overshadowing by obstacles
   for (std::vector<visualization_msgs::msg::Marker>::iterator marker_it = markers.begin(); marker_it != markers.end(); ++marker_it, ++idx)
   {
-    marker_it->header.frame_id = cfg_->map_frame;
+    marker_it->header.frame_id = cfg_->global_frame;
     marker_it->header.stamp = nh_->now();
     marker_it->action = visualization_msgs::msg::Marker::ADD;
     marker_it->ns = ns;
@@ -151,7 +151,7 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
   // Visualize point obstacles
   {
     visualization_msgs::msg::Marker marker;
-    marker.header.frame_id = cfg_->map_frame;
+    marker.header.frame_id = cfg_->global_frame;
     marker.header.stamp = nh_->now();
     marker.ns = "PointObstacles";
     marker.id = 0;
@@ -214,7 +214,7 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
         continue;
 
       visualization_msgs::msg::Marker marker;
-      marker.header.frame_id = cfg_->map_frame;
+      marker.header.frame_id = cfg_->global_frame;
       marker.header.stamp = nh_->now();
       marker.ns = "LineObstacles";
       marker.id = idx++;
@@ -256,7 +256,7 @@ void TebVisualization::publishObstacles(const ObstContainer& obstacles) const
         continue;
 
       visualization_msgs::msg::Marker marker;
-      marker.header.frame_id = cfg_->map_frame;
+      marker.header.frame_id = cfg_->global_frame;
       marker.header.stamp = nh_->now();
       marker.ns = "PolyObstacles";
       marker.id = idx++;
@@ -303,7 +303,7 @@ void TebVisualization::publishViaPoints(const std::vector< Eigen::Vector2d, Eige
     return;
 
   visualization_msgs::msg::Marker marker;
-  marker.header.frame_id = cfg_->map_frame;
+  marker.header.frame_id = cfg_->global_frame;
   marker.header.stamp = nh_->now();
   marker.ns = ns;
   marker.id = 0;
@@ -337,7 +337,7 @@ if ( printErrorWhenNotInitialized() )
     return;
 
   visualization_msgs::msg::Marker marker;
-  marker.header.frame_id = cfg_->map_frame;
+  marker.header.frame_id = cfg_->global_frame;
   marker.header.stamp = nh_->now();
   marker.ns = ns;
   marker.id = 0;
@@ -388,7 +388,7 @@ void TebVisualization::publishFeedbackMessage(const std::vector< std::shared_ptr
 {
   teb_msgs::msg::FeedbackMsg msg;
   msg.header.stamp = nh_->now();
-  msg.header.frame_id = cfg_->map_frame;
+  msg.header.frame_id = cfg_->global_frame;
   msg.selected_trajectory_idx = selected_trajectory_idx;
 
 
@@ -429,7 +429,7 @@ void TebVisualization::publishFeedbackMessage(const TebOptimalPlanner& teb_plann
 {
   teb_msgs::msg::FeedbackMsg msg;
   msg.header.stamp = nh_->now();
-  msg.header.frame_id = cfg_->map_frame;
+  msg.header.frame_id = cfg_->global_frame;
   msg.selected_trajectory_idx = 0;
 
   msg.trajectories.resize(1);

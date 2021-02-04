@@ -36,9 +36,15 @@
  * Author: Christoph Rösmann
  *********************************************************************/
 #include <functional>
+<<<<<<< HEAD
 
 #include "nav2_util/node_utils.hpp"
 #include "teb_local_planner/teb_config.hpp"
+=======
+#include "nav2_util/node_utils.hpp"
+#include "teb_local_planner/teb_config.h"
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
+
 
 namespace teb_local_planner
 {
@@ -58,6 +64,21 @@ void TebConfig::declareParameters(
   para(nd + "global_frame", Dv(global_frame));
   para(nd + "controller_frequency", Dv(controller_frequency));
 
+<<<<<<< HEAD
+=======
+void TebConfig::declareParameters(const nav2_util::LifecycleNode::SharedPtr nh, const std::string name) {
+  const std::string nd = name + "."; // nd is short for name plus dot
+  using Dv = rclcpp::ParameterValue; // Dv is short for default value
+  constexpr auto para_ = nav2_util::declare_parameter_if_not_declared<decltype(nh)>;
+  using namespace std::placeholders; 
+  const auto e = rcl_interfaces::msg::ParameterDescriptor();
+  const auto para = std::bind(para_, nh, _1,  _2, e); // use function para to declare parameters and their default value
+
+  // Global
+  para(nd + "odom_topic", Dv("odom_topic"));
+  para(nd + "map_frame", Dv("map_frame"));
+
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   // Trajectory
   para(nd + "teb_autosize", Dv(trajectory.teb_autosize));
   para(nd + "dt_ref", Dv(trajectory.dt_ref));
@@ -75,9 +96,13 @@ void TebConfig::declareParameters(
   para(nd + "force_reinit_new_goal_angular", Dv(trajectory.force_reinit_new_goal_angular));
   para(nd + "feasibility_check_no_poses", Dv(trajectory.feasibility_check_no_poses));
   para(nd + "publish_feedback", Dv(trajectory.publish_feedback));
+<<<<<<< HEAD
   para(
     nd + "min_resolution_collision_check_angular",
     Dv(trajectory.min_resolution_collision_check_angular));
+=======
+  para(nd + "min_resolution_collision_check_angular", Dv(trajectory.min_resolution_collision_check_angular));
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   para(nd + "control_look_ahead_poses", Dv(trajectory.control_look_ahead_poses));
 
   // Robot
@@ -92,9 +117,13 @@ void TebConfig::declareParameters(
   para(nd + "wheelbase", Dv(robot.wheelbase));
   para(nd + "cmd_angle_instead_rotvel", Dv(robot.cmd_angle_instead_rotvel));
   para(nd + "is_footprint_dynamic", Dv(robot.is_footprint_dynamic));
+<<<<<<< HEAD
   para(nd + "use_proportional_saturation", Dv(robot.use_proportional_saturation));
   para(nd + "transform_tolerance", Dv(robot.transform_tolerance));
 
+=======
+  
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   // GoalTolerance
   para(nd + "xy_goal_tolerance", Dv(goal_tolerance.xy_goal_tolerance));
   para(nd + "yaw_goal_tolerance", Dv(goal_tolerance.yaw_goal_tolerance));
@@ -107,6 +136,7 @@ void TebConfig::declareParameters(
   para(nd + "dynamic_obstacle_inflation_dist", Dv(obstacles.dynamic_obstacle_inflation_dist));
   para(nd + "include_dynamic_obstacles", Dv(obstacles.include_dynamic_obstacles));
   para(nd + "include_costmap_obstacles", Dv(obstacles.include_costmap_obstacles));
+<<<<<<< HEAD
   para(
     nd + "costmap_obstacles_behind_robot_dist", Dv(obstacles.costmap_obstacles_behind_robot_dist));
   para(nd + "obstacle_poses_affected", Dv(obstacles.obstacle_poses_affected));
@@ -114,13 +144,22 @@ void TebConfig::declareParameters(
   para(
     nd + "obstacle_association_force_inclusion_factor",
     Dv(obstacles.obstacle_association_force_inclusion_factor));
+=======
+  para(nd + "costmap_obstacles_behind_robot_dist", Dv(obstacles.costmap_obstacles_behind_robot_dist));
+  para(nd + "obstacle_poses_affected", Dv(obstacles.obstacle_poses_affected));
+  para(nd + "legacy_obstacle_association", Dv(obstacles.legacy_obstacle_association));
+  para(nd + "obstacle_association_force_inclusion_factor", Dv(obstacles.obstacle_association_force_inclusion_factor));
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   para(nd + "obstacle_association_cutoff_factor", Dv(obstacles.obstacle_association_cutoff_factor));
   para(nd + "costmap_converter_plugin", Dv(obstacles.costmap_converter_plugin));
   para(nd + "costmap_converter_spin_thread", Dv(obstacles.costmap_converter_spin_thread));
   para(nd + "costmap_converter_rate", Dv(obstacles.costmap_converter_rate));
+<<<<<<< HEAD
   para(nd + "obstacle_proximity_ratio_max_vel", Dv(obstacles.obstacle_proximity_ratio_max_vel));
   para(nd + "obstacle_proximity_lower_bound", Dv(obstacles.obstacle_proximity_lower_bound));
   para(nd + "obstacle_proximity_upper_bound", Dv(obstacles.obstacle_proximity_upper_bound));
+=======
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
 
   // Optimization
   para(nd + "no_inner_iterations", Dv(optim.no_inner_iterations));
@@ -142,8 +181,11 @@ void TebConfig::declareParameters(
   para(nd + "weight_obstacle", Dv(optim.weight_obstacle));
   para(nd + "weight_inflation", Dv(optim.weight_inflation));
   para(nd + "weight_dynamic_obstacle", Dv(optim.weight_dynamic_obstacle));
+<<<<<<< HEAD
   para(nd + "weight_dynamic_obstacle_inflation", Dv(optim.weight_dynamic_obstacle_inflation));
   para(nd + "weight_velocity_obstacle_ratio", Dv(optim.weight_velocity_obstacle_ratio));
+=======
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   para(nd + "weight_viapoint", Dv(optim.weight_viapoint));
   para(nd + "weight_prefer_rotdir", Dv(optim.weight_prefer_rotdir));
   para(nd + "weight_adapt_factor", Dv(optim.weight_adapt_factor));
@@ -154,27 +196,40 @@ void TebConfig::declareParameters(
   para(nd + "enable_multithreading", Dv(hcp.enable_multithreading));
   para(nd + "simple_exploration", Dv(hcp.simple_exploration));
   para(nd + "max_number_classes", Dv(hcp.max_number_classes));
+<<<<<<< HEAD
   para(nd + "max_number_plans_in_current_class", Dv(hcp.max_number_plans_in_current_class));
+=======
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   para(nd + "selection_cost_hysteresis", Dv(hcp.selection_cost_hysteresis));
   para(nd + "selection_prefer_initial_plan", Dv(hcp.selection_prefer_initial_plan));
   para(nd + "selection_obst_cost_scale", Dv(hcp.selection_obst_cost_scale));
   para(nd + "selection_viapoint_cost_scale", Dv(hcp.selection_viapoint_cost_scale));
   para(nd + "selection_alternative_time_cost", Dv(hcp.selection_alternative_time_cost));
+<<<<<<< HEAD
   para(nd + "selection_dropping_probability", Dv(hcp.selection_dropping_probability));
   para(nd + "switching_blocking_period", Dv(hcp.switching_blocking_period));
+=======
+  para(nd + "obstacle_keypoint_offset", Dv(hcp.obstacle_keypoint_offset));
+  para(nd + "obstacle_heading_threshold", Dv(hcp.obstacle_heading_threshold));
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   para(nd + "roadmap_graph_no_samples", Dv(hcp.roadmap_graph_no_samples));
   para(nd + "roadmap_graph_area_width", Dv(hcp.roadmap_graph_area_width));
   para(nd + "roadmap_graph_area_length_scale", Dv(hcp.roadmap_graph_area_length_scale));
   para(nd + "h_signature_prescaler", Dv(hcp.h_signature_prescaler));
   para(nd + "h_signature_threshold", Dv(hcp.h_signature_threshold));
+<<<<<<< HEAD
   para(nd + "obstacle_keypoint_offset", Dv(hcp.obstacle_keypoint_offset));
   para(nd + "obstacle_heading_threshold", Dv(hcp.obstacle_heading_threshold));
+=======
+  para(nd + "switching_blocking_period", Dv(hcp.switching_blocking_period));
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
   para(nd + "viapoints_all_candidates", Dv(hcp.viapoints_all_candidates));
   para(nd + "visualize_hc_graph", Dv(hcp.visualize_hc_graph));
   para(nd + "visualize_with_time_as_z_axis_scale", Dv(hcp.visualize_with_time_as_z_axis_scale));
   para(nd + "delete_detours_backwards", Dv(hcp.delete_detours_backwards));
   para(nd + "detours_orientation_tolerance", Dv(hcp.detours_orientation_tolerance));
   para(nd + "length_start_orientation_vector", Dv(hcp.length_start_orientation_vector));
+<<<<<<< HEAD
   para(
     nd + "max_ratio_detours_duration_best_duration",
     Dv(hcp.max_ratio_detours_duration_best_duration));
@@ -190,6 +245,18 @@ void TebConfig::declareParameters(
   para(nd + "divergence_detection_enable", Dv(recovery.divergence_detection_enable));
   para(
     nd + "divergence_detection_max_chi_squared", Dv(recovery.divergence_detection_max_chi_squared));
+=======
+  para(nd + "max_ratio_detours_duration_best_duration", Dv(hcp.max_ratio_detours_duration_best_duration));
+
+  // Recovery
+  para(nd + "shrink_horizon_backup", Dv(recovery.shrink_horizon_backup));  
+  para(nd + "shrink_horizon_min_duration", Dv(recovery.shrink_horizon_min_duration));  
+  para(nd + "oscillation_recovery", Dv(recovery.oscillation_recovery));  
+  para(nd + "oscillation_v_eps", Dv(recovery.oscillation_v_eps));  
+  para(nd + "oscillation_omega_eps", Dv(recovery.oscillation_omega_eps));  
+  para(nd + "oscillation_recovery_min_duration", Dv(recovery.oscillation_recovery_min_duration));  
+  para(nd + "oscillation_filter_duration", Dv(recovery.oscillation_filter_duration));  
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3
 }
 
 void TebConfig::loadRosParamFromNodeHandle(

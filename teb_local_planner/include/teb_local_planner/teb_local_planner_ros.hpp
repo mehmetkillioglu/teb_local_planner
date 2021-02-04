@@ -102,6 +102,7 @@ public:
    * @param tf Pointer to a transform listener
    * @param costmap_ros Cost map representing occupied and free space
    */
+<<<<<<< HEAD:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.hpp
   virtual void configure(
     const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, std::string name,
     const std::shared_ptr<tf2_ros::Buffer> & tf,
@@ -112,14 +113,31 @@ public:
   virtual void deactivate() override;
 
   virtual void cleanup() override;
+=======
+  void configure(
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr& node,
+    std::string name,
+    const std::shared_ptr<tf2_ros::Buffer> & tf,
+    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros) override;
+
+  void activate() override;
+
+  void deactivate() override;
+
+  void cleanup() override;
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.h
 
   /**
     * @brief Initializes the teb plugin
     */
+<<<<<<< HEAD:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.hpp
   // void initialize(
   //   const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, std::string name,
   //   const std::shared_ptr<tf2_ros::Buffer> & tf,
   //   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros);
+=======
+  void initialize(nav2_util::LifecycleNode::SharedPtr node);
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.h
 
   /**
     * @brief Set the plan that the teb local planner is following
@@ -134,10 +152,18 @@ public:
     * @param velocity is the current velocity
     * @return velocity commands to send to the base
     */
+<<<<<<< HEAD:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.hpp
   virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
     const geometry_msgs::msg::PoseStamped & pose,
     const geometry_msgs::msg::Twist & velocity) override;
 
+=======
+  geometry_msgs::msg::TwistStamped computeVelocityCommands(
+    const geometry_msgs::msg::PoseStamped &pose,
+    const geometry_msgs::msg::Twist &velocity);
+  
+    
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.h
   /** @name Public utility functions/methods */
   //@{
 
@@ -156,8 +182,13 @@ public:
    * @return Robot footprint model used for optimization
    */
   RobotFootprintModelPtr getRobotFootprintFromParamServer(nav2_util::LifecycleNode::SharedPtr node);
+<<<<<<< HEAD:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.hpp
 
   /**
+=======
+  
+  /** 
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.h
    * @brief Set the footprint from the given XmlRpcValue.
    * @remarks This method is copied from costmap_2d/footprint.h, since it is not declared public in all ros distros
    * @remarks It is modified in order to return a container of Eigen::Vector2d instead of geometry_msgs::msg::Point
@@ -356,6 +387,7 @@ protected:
 
 private:
   // Definition of member variables
+<<<<<<< HEAD:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.hpp
   // passed from the controller server.
   nav2_util::LifecycleNode::SharedPtr nh_;  // shared_ptr to the controller server node.
   TFBufferPtr tf_;                          // shared_ptr to tf2_ros::Buffer.
@@ -422,6 +454,56 @@ private:
 
   std::string robot_base_frame_;  //!< Used as the base frame id of the robot
 
+=======
+  nav2_util::LifecycleNode::SharedPtr nh_;
+  rclcpp::Logger logger_;
+  rclcpp::Clock::SharedPtr clock_;
+  rclcpp::Node::SharedPtr intra_proc_node_;
+  // external objects (store weak pointers)
+  CostmapROSPtr costmap_ros_; //!< Pointer to the costmap ros wrapper, received from the navigation stack
+  nav2_costmap_2d::Costmap2D* costmap_; //!< Pointer to the 2d costmap (obtained from the costmap ros wrapper)
+  TFBufferPtr tf_; //!< pointer to Transform Listener
+  TebConfig::UniquePtr cfg_; //!< Config class that stores and manages all related parameters
+    
+  // internal objects (memory management owned)
+  PlannerInterfacePtr planner_; //!< Instance of the underlying optimal planner class
+  ObstContainer obstacles_; //!< Obstacle vector that should be considered during local trajectory optimization
+  ViaPointContainer via_points_; //!< Container of via-points that should be considered during local trajectory optimization
+  TebVisualizationPtr visualization_; //!< Instance of the visualization class (local/global plan, obstacles, ...)
+  std::shared_ptr<dwb_critics::ObstacleFootprintCritic> costmap_model_;
+  FailureDetector failure_detector_; //!< Detect if the robot got stucked
+  
+  std::vector<geometry_msgs::msg::PoseStamped> global_plan_; //!< Store the current global plan
+  
+  pluginlib::ClassLoader<costmap_converter::BaseCostmapToPolygons> costmap_converter_loader_; //!< Load costmap converter plugins at runtime
+  std::shared_ptr<costmap_converter::BaseCostmapToPolygons> costmap_converter_; //!< Store the current costmap_converter  
+
+  //std::shared_ptr< dynamic_reconfigure::Server<TebLocalPlannerReconfigureConfig> > dynamic_recfg_; //!< Dynamic reconfigure server to allow config modifications at runtime
+  rclcpp::Subscription<costmap_converter_msgs::msg::ObstacleArrayMsg>::SharedPtr custom_obst_sub_; //!< Subscriber for custom obstacles received via a ObstacleMsg.
+  std::mutex custom_obst_mutex_; //!< Mutex that locks the obstacle array (multi-threaded)
+  costmap_converter_msgs::msg::ObstacleArrayMsg custom_obstacle_msg_; //!< Copy of the most recent obstacle message
+
+  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr via_points_sub_; //!< Subscriber for custom via-points received via a Path msg.
+  bool custom_via_points_active_; //!< Keep track whether valid via-points have been received from via_points_sub_
+  std::mutex via_point_mutex_; //!< Mutex that locks the via_points container (multi-threaded)
+
+  PoseSE2 robot_pose_; //!< Store current robot pose
+  PoseSE2 robot_goal_; //!< Store current robot goal
+  geometry_msgs::msg::Twist robot_vel_; //!< Store current robot translational and angular velocity (vx, vy, omega)
+  rclcpp::Time time_last_infeasible_plan_; //!< Store at which time stamp the last infeasible plan was detected
+  int no_infeasible_plans_; //!< Store how many times in a row the planner failed to find a feasible plan.
+  rclcpp::Time time_last_oscillation_; //!< Store at which time stamp the last oscillation was detected
+  RotType last_preferred_rotdir_; //!< Store recent preferred turning direction
+  geometry_msgs::msg::Twist last_cmd_; //!< Store the last control command generated in computeVelocityCommands()
+  
+  std::vector<geometry_msgs::msg::Point> footprint_spec_; //!< Store the footprint of the robot 
+  double robot_inscribed_radius_; //!< The radius of the inscribed circle of the robot (collision possible)
+  double robot_circumscribed_radius; //!< The radius of the circumscribed circle of the robot
+  
+  std::string global_frame_; //!< The frame in which the controller will run
+  std::string robot_base_frame_; //!< Used as the base frame id of the robot
+    
+>>>>>>> d6865b419ba70bf637f5125317c380e00f7944c3:teb_local_planner/include/teb_local_planner/teb_local_planner_ros.h
   // flags
   // bool initialized_;  //!< Keeps track about the correct initialization of this class
 

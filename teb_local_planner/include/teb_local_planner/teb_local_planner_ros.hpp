@@ -354,6 +354,13 @@ protected:
   void configureBackupModes(
     std::vector<geometry_msgs::msg::PoseStamped> & transformed_plan, int & goal_idx);
 
+  /**
+   * @brief Limits the maximum linear speed of the robot.
+   * @param speed_limit expressed in percentage from maximum robot speed.
+   */
+  void setSpeedLimit(const double & speed_limit) override
+  {
+  }
 private:
   // Definition of member variables
   // passed from the controller server.

@@ -106,7 +106,7 @@ public:
    * @param costmap_ros Cost map representing occupied and free space
    */
   void configure(
-    const rclcpp_lifecycle::LifecycleNode::WeakPtr & node,
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
     std::string name,
     const std::shared_ptr<tf2_ros::Buffer> & tf,
     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros) override;
@@ -348,10 +348,17 @@ protected:
   
   void configureBackupModes(std::vector<geometry_msgs::msg::PoseStamped>& transformed_plan,  int& goal_idx);
   
+  /**
+   * @brief Limits the maximum linear speed of the robot.
+   * @param speed_limit expressed in percentage from maximum robot speed.
+   */
+  void setSpeedLimit(const double & speed_limit) override
+  {
+  }
 private:
   // Definition of member variables
   nav2_util::LifecycleNode::WeakPtr nh_;
-  rclcpp::Logger logger_;
+  rclcpp::Logger logger_{rclcpp::get_logger("teb_logger")};
   rclcpp::Clock::SharedPtr clock_;
   rclcpp::Node::SharedPtr intra_proc_node_;
   // external objects (store weak pointers)

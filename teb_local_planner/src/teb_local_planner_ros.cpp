@@ -57,6 +57,7 @@
 #include <nav2_core/exceptions.hpp>
 #include <nav2_costmap_2d/footprint.hpp>
 #include <nav_2d_utils/tf_help.hpp>
+#include <nav2_util/node_utils.hpp>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -66,7 +67,7 @@ namespace teb_local_planner
   
 
 TebLocalPlannerROS::TebLocalPlannerROS() 
-    : nh_(nullptr), costmap_ros_(nullptr), tf_(nullptr), cfg_(new TebConfig()), costmap_model_(nullptr), intra_proc_node_(nullptr),
+    : costmap_ros_(nullptr), tf_(nullptr), cfg_(new TebConfig()), costmap_model_(nullptr), intra_proc_node_(nullptr),
                                            costmap_converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons"),
                                            custom_via_points_active_(false), no_infeasible_plans_(0),
                                            last_preferred_rotdir_(RotType::none), initialized_(false)
@@ -201,11 +202,11 @@ void TebLocalPlannerROS::initialize(nav2_util::LifecycleNode::SharedPtr node)
 }
 
 void TebLocalPlannerROS::configure(
-    const rclcpp_lifecycle::LifecycleNode::WeakPtr & node,
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
     std::string name,
     const std::shared_ptr<tf2_ros::Buffer> & tf,
     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros) {
-  nh_ = node;
+  nh_ = parent;
 
   auto node = nh_.lock();
   logger_ = node->get_logger();

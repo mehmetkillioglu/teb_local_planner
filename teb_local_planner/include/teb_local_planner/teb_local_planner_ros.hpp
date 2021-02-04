@@ -103,7 +103,7 @@ public:
    * @param costmap_ros Cost map representing occupied and free space
    */
   virtual void configure(
-    const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, std::string name,
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent, std::string name,
     const std::shared_ptr<tf2_ros::Buffer> & tf,
     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> & costmap_ros) override;
 

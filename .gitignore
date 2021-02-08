@@ -1,3 +1,18 @@
 .svn
 .kdev4
 *.kdev4
+
+
+# Visual Studio Code files
+.vscode
+
+# Eclipse project files
+.cproject
+.project
+.pydevproject
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+
+sphinx_doc/_build
